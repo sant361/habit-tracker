@@ -1,0 +1,280 @@
+/* Selector de periodo (control segmentado) */
+.selector-periodo {
+    display: inline-flex;
+    padding: 4px;
+    gap: 2px;
+    background: var(--vacio);
+    border-radius: 12px;
+}
+
+.segmento {
+    padding: 8px 16px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--texto-suave);
+    background: transparent;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+}
+
+.segmento.activo {
+    color: var(--texto);
+    background: var(--superficie);
+    box-shadow: var(--sombra);
+}
+
+/* Resumen */
+.resumen {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.dato-resumen {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px 20px;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    box-shadow: var(--sombra);
+}
+
+.dato-resumen small {
+    font-size: 13px;
+    color: var(--texto-suave);
+}
+
+.dato-resumen b {
+    font-family: var(--fuente-titulo);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.dato-resumen em {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-style: normal;
+    font-weight: 500;
+    color: var(--texto-suave);
+}
+
+.dato-anillo {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+}
+
+.dato-anillo b {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+}
+
+.anillo {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: conic-gradient(var(--acento) calc(var(--p) * 1%), var(--vacio) 0);
+}
+
+.anillo::before {
+    content: '';
+    position: absolute;
+    inset: 9px;
+    border-radius: 50%;
+    background: var(--superficie);
+}
+
+.anillo span {
+    position: relative;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+/* Matriz */
+.matriz-scroll {
+    padding: 16px;
+    overflow-x: auto;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    box-shadow: var(--sombra);
+}
+
+.matriz {
+    border-collapse: separate;
+    border-spacing: 4px;
+    margin: 0 auto;
+    font-size: 12px;
+}
+
+.matriz th,
+.matriz td {
+    padding: 0;
+    font-weight: 400;
+    text-align: center;
+}
+
+.matriz .col-habito {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 160px;
+    max-width: 220px;
+    padding: 6px 12px 6px 4px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    background: var(--superficie);
+}
+
+.matriz .col-dia {
+    min-width: 24px;
+    color: var(--texto-suave);
+}
+
+.matriz .col-dia span {
+    display: block;
+    font-size: 10px;
+}
+
+.matriz .col-dia b {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--texto);
+}
+
+.matriz .col-dia.es-hoy b {
+    padding: 1px 5px;
+    color: var(--acento-texto);
+    background: var(--acento);
+    border-radius: 6px;
+}
+
+.matriz .col-dato {
+    min-width: 72px;
+    padding: 0 8px;
+    white-space: nowrap;
+    color: var(--texto-suave);
+}
+
+.matriz .col-dato b {
+    margin-right: 4px;
+    font-size: 14px;
+    color: var(--texto);
+}
+
+.matriz .col-dato small {
+    font-size: 11px;
+}
+
+.etiqueta-tasa {
+    display: inline-block;
+    padding: 3px 9px;
+    font-weight: 600;
+    color: var(--acento);
+    background: var(--acento-suave);
+    border-radius: 20px;
+}
+
+.punto {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 8px;
+    border-radius: 50%;
+}
+
+/* Celdas */
+.celda {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.celda:hover:not(:disabled) {
+    transform: scale(1.18);
+}
+
+.celda-hecho {
+    background: var(--acento);
+}
+
+.celda-fallado {
+    background: var(--fallo);
+}
+
+.celda-pendiente {
+    background: transparent;
+    border: 2px dashed var(--acento);
+}
+
+.celda-no-toca {
+    background: var(--vacio);
+}
+
+.celda-futuro {
+    background: transparent;
+    border: 1px solid var(--borde);
+    cursor: default;
+}
+
+.calor {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.matriz tfoot .col-habito {
+    color: var(--acento);
+    font-weight: 600;
+}
+
+.leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 18px;
+    font-size: 12px;
+    color: var(--texto-suave);
+}
+
+.leyenda span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.leyenda .celda {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    cursor: default;
+}
+
+@media (max-width: 768px) {
+    .resumen {
+        grid-template-columns: 1fr;
+    }
+}

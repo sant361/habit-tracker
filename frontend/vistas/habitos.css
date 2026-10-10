@@ -1,0 +1,121 @@
+.tema-habitos .contenedor-card {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.tarjeta-habito {
+    border-left: 6px solid var(--acento);
+}
+
+.tarjeta-habito h2 {
+    padding-bottom: 0;
+}
+
+.categoria {
+    margin: 2px 18px 12px;
+    font-size: 13px;
+    color: var(--texto-suave);
+}
+
+.chips-dias {
+    display: flex;
+    gap: 5px;
+    padding: 0 18px 10px;
+}
+
+.chips-dias span {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--texto-suave);
+    background: var(--vacio);
+    border-radius: 50%;
+}
+
+.chips-dias span.activo {
+    color: var(--acento-texto);
+    background: var(--acento);
+}
+
+.acciones-tarjeta {
+    display: flex;
+    gap: 8px;
+    padding: 0 18px 18px;
+    margin-top: auto;
+}
+
+.acciones-tarjeta .boton {
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+/* Formulario de hábito */
+.caja-formulario {
+    max-width: 520px;
+    margin-bottom: 24px;
+    padding: 22px;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    box-shadow: var(--sombra);
+}
+
+.formulario-habito {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.fila-campos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.fila-campos input[type='color'] {
+    height: 42px;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.dias-semana {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.dia-boton {
+    padding: 8px 12px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--texto-suave);
+    background: var(--vacio);
+    border: 1px solid transparent;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.dia-boton.activo {
+    color: var(--acento-texto);
+    background: var(--acento);
+}
+
+.acciones-form {
+    display: flex;
+    gap: 10px;
+}
+
+@media (max-width: 1000px) {
+    .tema-habitos .contenedor-card {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .tema-habitos .contenedor-card {
+        grid-template-columns: 1fr;
+    }
+}

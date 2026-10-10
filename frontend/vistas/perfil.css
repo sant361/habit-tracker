@@ -1,0 +1,21 @@
+.tema-perfil-ht .contenedor-card {
+    grid-template-columns: minmax(0, 340px);
+}
+
+.tema-perfil-ht .fila-card {
+    align-items: flex-start;
+    padding-top: 22px;
+}
+
+.avatar {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin: 0 18px;
+    font-family: var(--fuente-titulo);
+    font-size: 1.5rem;
+    color: var(--acento-texto);
+    background: var(--acento);
+    border-radius: 50%;
+}
