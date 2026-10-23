@@ -41,6 +41,14 @@ Si defines la variable `DATABASE_URL`, la app usa PostgreSQL y los datos se cons
 Para cargar el usuario de ejemplo en esa base: `cd backend`, define `DATABASE_URL` en tu `.env` y corre `npm run seed`.
 Sin `DATABASE_URL` todo sigue funcionando con SQLite, como en desarrollo.
 
+## Pruebas automáticas
+
+    cd backend && npm test      # fechas, rachas, CSV y la matriz (con SQLite en memoria)
+    cd frontend && npm test     # gráficos de progreso y cuadrante de impacto
+
+Usan solo el ejecutor de pruebas de Node (`node --test`), sin instalar nada extra.
+Además, GitHub las corre solas en cada push (pestaña Actions del repositorio).
+
 ## Estructura
 
     frontend/

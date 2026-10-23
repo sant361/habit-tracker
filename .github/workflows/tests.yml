@@ -1,0 +1,22 @@
+name: Pruebas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Las pruebas usan solo módulos de Node (node:test, node:sqlite): no hace falta npm install
+      - name: Pruebas del backend
+        run: npm test
+        working-directory: backend
+      - name: Pruebas del frontend
+        run: npm test
+        working-directory: frontend
