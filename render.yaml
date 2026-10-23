@@ -3,7 +3,7 @@ services:
     name: habit-tracker
     runtime: node
     plan: free
-    buildCommand: cd frontend && npm ci && npm run build && cd ../backend && npm ci
+    buildCommand: cd frontend && npm ci && npm run build && cd ../backend && npm install
     startCommand: cd backend && npm run start:prod
     healthCheckPath: /api/salud
     envVars:
@@ -13,3 +13,6 @@ services:
         value: production
       - key: JWT_SECRET
         generateValue: true
+      # Pega aquí la dirección de tu base de datos de Neon (ver README)
+      - key: DATABASE_URL
+        sync: false

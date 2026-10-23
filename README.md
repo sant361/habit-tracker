@@ -28,9 +28,18 @@ El repo incluye `render.yaml`: un solo servicio web que compila el frontend y lo
 2. New + > Blueprint, elige el repositorio `habit-tracker` y confirma.
 3. Render genera `JWT_SECRET` solo; al terminar te da una dirección `https://...onrender.com`.
 
-Ojo: en el plan gratis el disco se borra en cada despliegue o reinicio, así que los datos se pierden.
-Para conservarlos, añade un disco persistente (plan de pago) montado en `/var/data` y define
-`DB_FILE=/var/data/habit-tracker.db`.
+### Base de datos que no se borra
+
+En Render gratis el disco se borra en cada reinicio, así que el archivo SQLite no sirve para publicar.
+Si defines la variable `DATABASE_URL`, la app usa PostgreSQL y los datos se conservan:
+
+1. Crea una cuenta gratis en https://neon.tech y un proyecto nuevo.
+2. Copia la dirección de conexión (empieza con `postgresql://`).
+3. En Render, en tu servicio, ve a Environment y pega esa dirección en `DATABASE_URL`.
+4. Guarda; Render vuelve a desplegar y las tablas se crean solas.
+
+Para cargar el usuario de ejemplo en esa base: `cd backend`, define `DATABASE_URL` en tu `.env` y corre `npm run seed`.
+Sin `DATABASE_URL` todo sigue funcionando con SQLite, como en desarrollo.
 
 ## Estructura
 

@@ -41,22 +41,23 @@ const ayer = sumarDias(hoy, -1);
 const aleatorio = crearAleatorio(2026);
 const aleatorioNotas = crearAleatorio(7);
 
-db.exec('BEGIN');
 try {
     // Borrar el usuario demo anterior (sus hábitos y registros se borran en cascada)
-    db.prepare('DELETE FROM usuarios WHERE email = ?').run(EMAIL);
+    await db.ejecutar('DELETE FROM usuarios WHERE email = ?', [EMAIL]);
 
-    const usuario = db
-        .prepare('INSERT INTO usuarios (nombre, email, clave_hash) VALUES (?, ?, ?)')
-        .run('Usuario Demo', EMAIL, bcrypt.hashSync(CLAVE, 10));
-
-    const insertarHabito = db.prepare(`INSERT INTO habitos (usuario_id, nombre, categoria, color, dias, peso, creado_en)
-                                       VALUES (?, ?, ?, ?, ?, ?, ?)`);
-    const insertarRegistro = db.prepare('INSERT INTO registros (habito_id, fecha, nota) VALUES (?, ?, ?)');
+    const usuarioId = await db.insertar('INSERT INTO usuarios (nombre, email, clave_hash) VALUES (?, ?, ?)', [
+        'Usuario Demo',
+        EMAIL,
+        bcrypt.hashSync(CLAVE, 10)
+    ]);
 
     let totalRegistros = 0;
     for (const h of habitosDemo) {
-        const habito = insertarHabito.run(usuario.lastInsertRowid, h.nombre, h.categoria, h.color, JSON.stringify(h.dias), h.peso, inicio);
+        const habitoId = await db.insertar(
+            `INSERT INTO habitos (usuario_id, nombre, categoria, color, dias, peso, creado_en)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [usuarioId, h.nombre, h.categoria, h.color, JSON.stringify(h.dias), h.peso, inicio]
+        );
 
         // Se llena hasta ayer; el día de hoy queda pendiente para poder marcarlo en la demo
         for (const fecha of rangoDias(inicio, ayer)) {
@@ -66,17 +67,17 @@ try {
             if (forzado || cumplido) {
                 const frases = NOTAS[h.nombre] || [];
                 const nota = frases.length && aleatorioNotas() < 0.15 ? frases[Math.floor(aleatorioNotas() * frases.length)] : null;
-                insertarRegistro.run(habito.lastInsertRowid, fecha, nota);
+                await db.insertar('INSERT INTO registros (habito_id, fecha, nota) VALUES (?, ?, ?)', [habitoId, fecha, nota]);
                 totalRegistros++;
             }
         }
     }
 
-    db.exec('COMMIT');
     console.log(`Listo: ${habitosDemo.length} hábitos y ${totalRegistros} registros de ${DIAS_HISTORIAL} días.`);
     console.log(`Entra con  ${EMAIL}  /  ${CLAVE}`);
 } catch (error) {
-    db.exec('ROLLBACK');
     console.error('No se pudieron cargar los datos de ejemplo:', error.message);
     process.exitCode = 1;
+} finally {
+    await db.cerrar();
 }

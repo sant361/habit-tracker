@@ -8,19 +8,24 @@ if (process.env.NODE_ENV === 'production' && SECRETO === 'cambia-este-secreto') 
     throw new Error('Define JWT_SECRET en producción');
 }
 
-export function requerirAuth(req, res, next) {
+export async function requerirAuth(req, res, next) {
     const token = (req.headers.authorization || '').replace('Bearer ', '');
+    let id;
     try {
-        const { id } = jwt.verify(token, SECRETO);
+        ({ id } = jwt.verify(token, SECRETO));
+    } catch {
+        return res.status(401).json({ error: 'No autorizado' });
+    }
 
+    try {
         // El token puede ser válido pero apuntar a un usuario que ya no existe
-        // (por ejemplo si se cambió o borró el archivo de la base de datos).
-        const usuario = db.prepare('SELECT id FROM usuarios WHERE id = ?').get(id);
+        // (por ejemplo si se cambió o borró la base de datos).
+        const usuario = await db.uno('SELECT id FROM usuarios WHERE id = ?', [id]);
         if (!usuario) return res.status(401).json({ error: 'Sesión inválida, inicia sesión de nuevo' });
 
         req.usuarioId = usuario.id;
         next();
-    } catch {
-        res.status(401).json({ error: 'No autorizado' });
+    } catch (error) {
+        next(error);
     }
 }
