@@ -27,10 +27,19 @@ const habitosDemo = [
     { nombre: 'Practicar programación', categoria: 'Estudio', color: '#ec4899', dias: [1, 2, 3, 4, 5], peso: 4, tasa: 0.7, rachaFinal: 8 }
 ];
 
+// Notas de ejemplo para algunos días cumplidos (generador aparte para no alterar el historial)
+const NOTAS = {
+    'Entrenar': ['Pecho y tríceps', 'Pierna, quedé agotado', 'Rutina corta, poco tiempo'],
+    'Leer 20 minutos': ['Capítulo 3', 'Libro nuevo, buen comienzo'],
+    'Meditar': ['Costó concentrarme', 'Muy tranquilo hoy'],
+    'Practicar programación': ['Terminé el ejercicio de arrays', 'Repasé promesas en JavaScript']
+};
+
 const hoy = hoyLocal();
 const inicio = sumarDias(hoy, -(DIAS_HISTORIAL - 1));
 const ayer = sumarDias(hoy, -1);
 const aleatorio = crearAleatorio(2026);
+const aleatorioNotas = crearAleatorio(7);
 
 db.exec('BEGIN');
 try {
@@ -43,7 +52,7 @@ try {
 
     const insertarHabito = db.prepare(`INSERT INTO habitos (usuario_id, nombre, categoria, color, dias, peso, creado_en)
                                        VALUES (?, ?, ?, ?, ?, ?, ?)`);
-    const insertarRegistro = db.prepare('INSERT INTO registros (habito_id, fecha) VALUES (?, ?)');
+    const insertarRegistro = db.prepare('INSERT INTO registros (habito_id, fecha, nota) VALUES (?, ?, ?)');
 
     let totalRegistros = 0;
     for (const h of habitosDemo) {
@@ -55,7 +64,9 @@ try {
             const forzado = h.rachaFinal && fecha >= sumarDias(hoy, -h.rachaFinal);
             const cumplido = aleatorio() < h.tasa;
             if (forzado || cumplido) {
-                insertarRegistro.run(habito.lastInsertRowid, fecha);
+                const frases = NOTAS[h.nombre] || [];
+                const nota = frases.length && aleatorioNotas() < 0.15 ? frases[Math.floor(aleatorioNotas() * frases.length)] : null;
+                insertarRegistro.run(habito.lastInsertRowid, fecha, nota);
                 totalRegistros++;
             }
         }

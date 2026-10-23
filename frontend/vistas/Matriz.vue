@@ -153,6 +153,11 @@ async function exportar() {
 }
 
 async function alternar(habitoId, fecha) {
+    // Desmarcar un día borra su nota, así que se pide confirmación
+    const fila = matriz.value.filas.find((f) => f.habitoId === habitoId);
+    const celda = fila && fila.celdas.find((c) => c.fecha === fecha);
+    if (celda && celda.nota && !confirm('Al desmarcar este día se borrará su nota. ¿Continuar?')) return;
+
     try {
         await api.post('/registros/alternar', { habitoId, fecha });
         await cargar();

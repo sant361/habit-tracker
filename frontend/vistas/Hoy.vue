@@ -43,12 +43,32 @@
                             <span class="hoy-nombre">
                                 <strong>{{ fila.nombre }}</strong>
                                 <small>{{ fila.categoria || 'Sin categoría' }}</small>
+                                <small v-if="notaDe(fila)" class="hoy-nota-texto">{{ notaDe(fila) }}</small>
                             </span>
                             <span class="hoy-racha">
                                 <b>{{ fila.rachaActual }}</b>
                                 <small>{{ fila.rachaActual === 1 ? 'día' : 'días' }} de racha</small>
                             </span>
                         </button>
+                        <button
+                            class="hoy-nota-boton"
+                            :disabled="!estaHecho(fila)"
+                            :title="estaHecho(fila) ? 'Nota del día' : 'Marca el hábito para añadir una nota'"
+                            @click="abrirNota(fila)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 20h9" />
+                                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                            </svg>
+                        </button>
+                        <form
+                            v-if="editando === fila.habitoId && estaHecho(fila)"
+                            class="hoy-editor"
+                            @submit.prevent="guardarNota(fila)">
+                            <input v-model="borrador" type="text" maxlength="280" placeholder="¿Cómo te fue hoy?" autofocus>
+                            <button type="submit" class="boton">Guardar</button>
+                            <button type="button" class="boton secundario" @click="editando = null">Cancelar</button>
+                            <p v-if="errorNota" class="error-form hoy-editor-error">{{ errorNota }}</p>
+                        </form>
                     </li>
                 </ul>
             </template>
@@ -76,6 +96,9 @@ const datos = ref(null);
 const cargando = ref(false);
 const error = ref('');
 const fecha = ref(hoy());
+const editando = ref(null); // id del hábito cuya nota se está escribiendo
+const borrador = ref('');
+const errorNota = ref('');
 
 const saludo = computed(() => {
     const nombre = sesion.usuario ? sesion.usuario.nombre.split(' ')[0] : '';
@@ -90,6 +113,7 @@ const fechaLarga = new Date().toLocaleDateString('es-CO', {
 
 // La matriz de un solo día (desde = hasta = hoy) ya trae el estado de hoy y la racha.
 const estaHecho = (fila) => fila.celdas[0].estado === 'hecho';
+const notaDe = (fila) => fila.celdas[0].nota;
 
 // Los que tocan hoy, más cualquiera que ya se marcó aunque no tocara
 const programados = computed(() =>
@@ -130,11 +154,31 @@ async function cargar() {
 }
 
 async function alternar(fila) {
+    // Desmarcar un hábito borra su nota, así que se pide confirmación
+    if (estaHecho(fila) && notaDe(fila) && !confirm('Al desmarcar este hábito se borrará su nota. ¿Continuar?')) return;
+
     try {
         await api.post('/registros/alternar', { habitoId: fila.habitoId, fecha: fecha.value });
         await cargar();
     } catch (err) {
         error.value = mensajeError(err, 'No se pudo guardar el cambio.');
+    }
+}
+
+function abrirNota(fila) {
+    editando.value = fila.habitoId;
+    borrador.value = notaDe(fila) || '';
+    errorNota.value = '';
+}
+
+async function guardarNota(fila) {
+    errorNota.value = '';
+    try {
+        await api.put('/registros/nota', { habitoId: fila.habitoId, fecha: fecha.value, nota: borrador.value });
+        editando.value = null;
+        await cargar();
+    } catch (err) {
+        errorNota.value = mensajeError(err, 'No se pudo guardar la nota.');
     }
 }
 

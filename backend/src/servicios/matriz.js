@@ -20,13 +20,15 @@ export function construirMatriz(usuarioId, desde, hasta, hoy, categoria = null) 
     const habitos = categoria ? todos.filter((h) => h.categoria === categoria) : todos;
 
     const registros = db
-        .prepare(`SELECT r.habito_id, r.fecha FROM registros r
+        .prepare(`SELECT r.habito_id, r.fecha, r.nota FROM registros r
                   JOIN habitos h ON h.id = r.habito_id
                   WHERE h.usuario_id = ? AND h.archivado = 0`)
         .all(usuarioId);
 
     const hechosPorHabito = new Map();
+    const notas = new Map();
     for (const r of registros) {
+        if (r.nota) notas.set(`${r.habito_id}|${r.fecha}`, r.nota);
         if (!hechosPorHabito.has(r.habito_id)) hechosPorHabito.set(r.habito_id, new Set());
         hechosPorHabito.get(r.habito_id).add(r.fecha);
     }
@@ -62,7 +64,7 @@ export function construirMatriz(usuarioId, desde, hasta, hoy, categoria = null) 
                     diarioOk[i] += h.peso;
                 }
             }
-            return { fecha, estado, programado };
+            return { fecha, estado, programado, nota: notas.get(`${h.id}|${fecha}`) || null };
         });
 
         globalOk += ok;

@@ -20,12 +20,12 @@ function campo(valor) {
  * los días que no tocaba o que aún no llegan no generan fila.
  */
 export function matrizACsv(matriz) {
-    const filas = [['fecha', 'habito', 'categoria', 'impacto', 'estado']];
+    const filas = [['fecha', 'habito', 'categoria', 'impacto', 'estado', 'nota']];
     for (const dia of matriz.dias.keys()) {
         for (const habito of matriz.filas) {
             const estado = TEXTO_ESTADO[habito.celdas[dia].estado];
             if (!estado) continue;
-            filas.push([matriz.dias[dia], habito.nombre, habito.categoria, habito.peso, estado]);
+            filas.push([matriz.dias[dia], habito.nombre, habito.categoria, habito.peso, estado, habito.celdas[dia].nota]);
         }
     }
     return filas.map((f) => f.map(campo).join(SEPARADOR)).join('\r\n') + '\r\n';

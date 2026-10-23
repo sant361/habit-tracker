@@ -129,3 +129,81 @@
 .hoy-resto li {
     padding: 4px 0;
 }
+
+/* Notas del día */
+.hoy-lista li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hoy-lista li .hoy-item {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+}
+
+.hoy-nota-boton {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 52px;
+    color: var(--texto-suave);
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    box-shadow: var(--sombra);
+    cursor: pointer;
+}
+
+.hoy-nota-boton svg {
+    width: 20px;
+    height: 20px;
+}
+
+.hoy-nota-boton:hover:not(:disabled) {
+    color: var(--acento);
+    border-color: var(--acento);
+}
+
+.hoy-nota-boton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.hoy-nombre small.hoy-nota-texto {
+    margin-top: 4px;
+    font-style: italic;
+}
+
+.hoy-editor {
+    display: flex;
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hoy-editor input {
+    flex: 1;
+    min-width: 180px;
+    padding: 10px 12px;
+    font: inherit;
+    color: var(--texto);
+    background: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+}
+
+.hoy-editor input:focus {
+    outline: 2px solid var(--acento);
+    outline-offset: 1px;
+}
+
+.hoy-editor .boton {
+    padding: 9px 16px;
+    font-size: 13px;
+}
+
+.hoy-editor-error {
+    flex-basis: 100%;
+}

@@ -24,10 +24,10 @@
                     </th>
                     <td v-for="celda in fila.celdas" :key="celda.fecha">
                         <button
-                            :class="['celda', 'celda-' + celda.estado]"
+                            :class="['celda', 'celda-' + celda.estado, { 'con-nota': celda.nota }]"
                             :style="celda.estado === 'hecho' ? { background: fila.color } : null"
                             :disabled="celda.estado === 'futuro'"
-                            :title="celda.fecha + ' · ' + textoEstado[celda.estado]"
+                            :title="celda.fecha + ' · ' + textoEstado[celda.estado] + (celda.nota ? ' · ' + celda.nota : '')"
                             @click="$emit('alternar', fila.habitoId, celda.fecha)"></button>
                     </td>
                     <td class="col-dato">

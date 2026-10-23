@@ -28,8 +28,13 @@ db.exec(`
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
         habito_id   INTEGER NOT NULL REFERENCES habitos(id) ON DELETE CASCADE,
         fecha       TEXT NOT NULL,
+        nota        TEXT,
         UNIQUE (habito_id, fecha)
     );
 `);
+
+// Bases de datos creadas antes de existir las notas: agrega la columna sin perder datos
+const columnas = db.prepare('PRAGMA table_info(registros)').all();
+if (!columnas.some((c) => c.name === 'nota')) db.exec('ALTER TABLE registros ADD COLUMN nota TEXT');
 
 export default db;
