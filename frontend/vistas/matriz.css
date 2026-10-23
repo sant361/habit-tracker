@@ -307,3 +307,16 @@
     color: var(--acento-texto);
     background: var(--acento);
 }
+
+/* Periodo + botón de exportar */
+.acciones-matriz {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.acciones-matriz .boton {
+    padding: 9px 16px;
+    font-size: 13px;
+}

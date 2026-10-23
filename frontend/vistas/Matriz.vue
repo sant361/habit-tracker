@@ -5,8 +5,18 @@
                 <h1>Matriz de rendimiento</h1>
                 <p class="subtitulo">{{ saludo }} · {{ fechaLarga }}</p>
             </div>
-            <SelectorPeriodo v-model="periodo" />
+            <div class="acciones-matriz">
+                <SelectorPeriodo v-model="periodo" />
+                <button
+                    class="boton secundario"
+                    :disabled="exportando || !matriz || !matriz.filas.length"
+                    @click="exportar">
+                    {{ exportando ? 'Exportando...' : 'Exportar CSV' }}
+                </button>
+            </div>
         </div>
+
+        <p v-if="errorExportar" class="error-form">{{ errorExportar }}</p>
 
         <FiltroCategorias v-if="categorias.length > 1" v-model="categoria" :categorias="categorias" />
 
@@ -64,6 +74,8 @@ const categorias = ref([]);
 const matriz = ref(null);
 const cargando = ref(false);
 const error = ref('');
+const exportando = ref(false);
+const errorExportar = ref('');
 
 const saludo = computed(() => {
     const nombre = sesion.usuario ? sesion.usuario.nombre.split(' ')[0] : '';
@@ -114,6 +126,29 @@ async function cargarCategorias() {
         );
     } catch {
         // Sin categorías, el filtro simplemente no aparece
+    }
+}
+
+// Descarga lo que se está viendo (periodo y categoría elegidos) como archivo CSV
+async function exportar() {
+    exportando.value = true;
+    errorExportar.value = '';
+    try {
+        const hasta = hoy();
+        const desde = sumarDias(hasta, -(periodo.value - 1));
+        const respuesta = await api.get('/estadisticas/exportar', {
+            params: { desde, hasta, hoy: hasta, categoria: categoria.value || undefined },
+            responseType: 'blob'
+        });
+        const enlace = document.createElement('a');
+        enlace.href = URL.createObjectURL(respuesta.data);
+        enlace.download = `habit-tracker_${desde}_a_${hasta}.csv`;
+        enlace.click();
+        setTimeout(() => URL.revokeObjectURL(enlace.href), 1000);
+    } catch {
+        errorExportar.value = 'No se pudo exportar el archivo.';
+    } finally {
+        exportando.value = false;
     }
 }
 
