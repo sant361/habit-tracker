@@ -1,0 +1,131 @@
+.hoy-resumen {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    max-width: 640px;
+    margin-bottom: 20px;
+    padding: 18px 20px;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    box-shadow: var(--sombra);
+}
+
+.hoy-resumen b {
+    display: block;
+    font-family: var(--fuente-titulo);
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.hoy-resumen small {
+    color: var(--texto-suave);
+}
+
+.hoy-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 640px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hoy-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 14px 18px;
+    font: inherit;
+    text-align: left;
+    color: var(--texto);
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    box-shadow: var(--sombra);
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.hoy-item:hover {
+    transform: translateY(-1px);
+    border-color: var(--acento);
+}
+
+.hoy-check {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    color: #fff;
+    border: 2px solid var(--acento);
+    border-radius: 50%;
+    transition: background 0.15s ease;
+}
+
+.hoy-check svg {
+    width: 18px;
+    height: 18px;
+}
+
+.hoy-nombre {
+    flex: 1;
+    min-width: 0;
+}
+
+.hoy-nombre strong,
+.hoy-nombre small {
+    display: block;
+}
+
+.hoy-nombre small {
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--texto-suave);
+}
+
+.hoy-item.hecho .hoy-nombre strong {
+    color: var(--texto-suave);
+    text-decoration: line-through;
+}
+
+.hoy-racha {
+    flex: none;
+    text-align: right;
+}
+
+.hoy-racha b {
+    display: block;
+    font-family: var(--fuente-titulo);
+    font-size: 1.3rem;
+    line-height: 1.1;
+}
+
+.hoy-racha small {
+    font-size: 11px;
+    color: var(--texto-suave);
+}
+
+.hoy-resto {
+    max-width: 640px;
+    margin-top: 24px;
+    color: var(--texto-suave);
+    font-size: 14px;
+}
+
+.hoy-resto summary {
+    cursor: pointer;
+}
+
+.hoy-resto ul {
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hoy-resto li {
+    padding: 4px 0;
+}

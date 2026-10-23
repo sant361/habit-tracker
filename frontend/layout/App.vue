@@ -29,6 +29,7 @@
 
         <div class="contenido">
             <main id="datosprincipal">
+                <Hoy v-if="vistaActiva === 'hoy'" />
                 <Matriz v-if="vistaActiva === 'matriz'" />
                 <Habitos v-if="vistaActiva === 'habitos'" />
                 <Perfil v-if="vistaActiva === 'perfil'" />
@@ -46,11 +47,17 @@
 import { ref, watch } from 'vue';
 import { sesion } from '../servicios/sesion.js';
 import Login from '../vistas/Login.vue';
+import Hoy from '../vistas/Hoy.vue';
 import Matriz from '../vistas/Matriz.vue';
 import Habitos from '../vistas/Habitos.vue';
 import Perfil from '../vistas/Perfil.vue';
 
 const vistas = [
+    {
+        id: 'hoy',
+        texto: 'Hoy',
+        icono: '<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>'
+    },
     {
         id: 'matriz',
         texto: 'Matriz',
@@ -68,10 +75,10 @@ const vistas = [
     }
 ];
 
-const vistaActiva = ref('matriz');
+const vistaActiva = ref('hoy');
 
-// Al cerrar sesión, la próxima vez se entra a la matriz
+// Al cerrar sesión, la próxima vez se entra a Hoy
 watch(() => sesion.token, (token) => {
-    if (!token) vistaActiva.value = 'matriz';
+    if (!token) vistaActiva.value = 'hoy';
 });
 </script>
