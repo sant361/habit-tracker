@@ -31,6 +31,7 @@
             <main id="datosprincipal">
                 <Hoy v-if="vistaActiva === 'hoy'" />
                 <Matriz v-if="vistaActiva === 'matriz'" />
+                <Progreso v-if="vistaActiva === 'progreso'" />
                 <Habitos v-if="vistaActiva === 'habitos'" />
                 <Perfil v-if="vistaActiva === 'perfil'" />
             </main>
@@ -49,6 +50,7 @@ import { sesion } from '../servicios/sesion.js';
 import Login from '../vistas/Login.vue';
 import Hoy from '../vistas/Hoy.vue';
 import Matriz from '../vistas/Matriz.vue';
+import Progreso from '../vistas/Progreso.vue';
 import Habitos from '../vistas/Habitos.vue';
 import Perfil from '../vistas/Perfil.vue';
 
@@ -62,6 +64,11 @@ const vistas = [
         id: 'matriz',
         texto: 'Matriz',
         icono: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'
+    },
+    {
+        id: 'progreso',
+        texto: 'Progreso',
+        icono: '<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/>'
     },
     {
         id: 'habitos',

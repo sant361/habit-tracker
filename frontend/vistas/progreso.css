@@ -1,0 +1,116 @@
+.tema-progreso .dato-resumen b.nombre-habito {
+    font-size: 1.25rem;
+    line-height: 1.25;
+}
+
+.tema-progreso .dato-resumen em {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-style: normal;
+    font-weight: 600;
+    color: var(--acento);
+}
+
+.tarjeta-grafico {
+    max-width: 860px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    box-shadow: var(--sombra);
+}
+
+.tarjeta-grafico h2 {
+    margin: 0 0 14px;
+    font-size: 1.05rem;
+}
+
+/* Gráfico de línea */
+.grafico {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.grafico-guia {
+    stroke: var(--borde);
+    stroke-width: 1;
+}
+
+.grafico-eje {
+    font-size: 11px;
+    fill: var(--texto-suave);
+}
+
+.grafico-linea {
+    fill: none;
+    stroke: var(--acento);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.grafico-area {
+    fill: var(--acento-suave);
+    opacity: 0.8;
+}
+
+.grafico-punto {
+    fill: var(--superficie);
+    stroke: var(--acento);
+    stroke-width: 3;
+}
+
+/* Barras por hábito */
+.barras {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.barra-fila {
+    display: grid;
+    grid-template-columns: minmax(120px, 220px) 1fr 48px;
+    align-items: center;
+    gap: 12px;
+}
+
+.barra-nombre {
+    overflow: hidden;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.barra-pista {
+    height: 12px;
+    overflow: hidden;
+    background: var(--vacio);
+    border-radius: 6px;
+}
+
+.barra-relleno {
+    display: block;
+    height: 100%;
+    border-radius: 6px;
+}
+
+.barra-valor {
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+}
+
+@media (max-width: 640px) {
+    .barra-fila {
+        grid-template-columns: 1fr 44px;
+    }
+
+    .barra-nombre {
+        grid-column: 1 / -1;
+    }
+}
