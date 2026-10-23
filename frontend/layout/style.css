@@ -17,8 +17,10 @@
     --fuente-titulo: 'Fraunces', Georgia, 'Times New Roman', serif;
 }
 
+/* El tema oscuro se aplica solo si el sistema lo pide y el usuario no eligió el claro,
+   o si el usuario eligió el oscuro (atributo data-tema en <html>, ver servicios/tema.js). */
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-tema='claro']) {
         --fondo: #0f1613;
         --superficie: #172019;
         --borde: #26332b;
@@ -34,6 +36,23 @@
         --lateral-texto: #a9bdb1;
         --sombra: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.25);
     }
+}
+
+:root[data-tema='oscuro'] {
+    --fondo: #0f1613;
+    --superficie: #172019;
+    --borde: #26332b;
+    --texto: #e6efe9;
+    --texto-suave: #8fa196;
+    --acento: #4cc38a;
+    --acento-suave: #1d3a2c;
+    --acento-texto: #0b1a12;
+    --peligro: #ef6b60;
+    --fallo: #5a2a26;
+    --vacio: #1f2a23;
+    --lateral: #0b1210;
+    --lateral-texto: #a9bdb1;
+    --sombra: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 * {

@@ -18,6 +18,20 @@
                     <button class="boton peligro" @click="sesion.cerrar()">Cerrar sesión</button>
                 </div>
             </article>
+
+            <article class="fila-card">
+                <h2>Apariencia</h2>
+                <p class="ayuda-tema">Automático sigue el tema de tu sistema.</p>
+                <div class="selector-tema">
+                    <button
+                        v-for="opcion in OPCIONES_TEMA"
+                        :key="opcion.id"
+                        :class="['opcion-tema', { activo: tema === opcion.id }]"
+                        @click="cambiarTema(opcion.id)">
+                        {{ opcion.texto }}
+                    </button>
+                </div>
+            </article>
         </div>
     </section>
 </template>
@@ -25,6 +39,7 @@
 <script setup>
 import { computed } from 'vue';
 import { sesion } from '../servicios/sesion.js';
+import { tema, cambiarTema, OPCIONES_TEMA } from '../servicios/tema.js';
 
 const inicial = computed(() => (sesion.usuario ? sesion.usuario.nombre.charAt(0).toUpperCase() : '?'));
 </script>

@@ -19,3 +19,37 @@
     background: var(--acento);
     border-radius: 50%;
 }
+
+/* Selector de tema */
+.ayuda-tema {
+    margin: 0 18px 12px;
+    font-size: 13px;
+    color: var(--texto-suave);
+}
+
+.selector-tema {
+    display: inline-flex;
+    gap: 2px;
+    margin: 0 18px 18px;
+    padding: 4px;
+    background: var(--vacio);
+    border-radius: 12px;
+}
+
+.opcion-tema {
+    padding: 8px 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--texto-suave);
+    background: transparent;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+}
+
+.opcion-tema.activo {
+    color: var(--texto);
+    background: var(--superficie);
+    box-shadow: var(--sombra);
+}
