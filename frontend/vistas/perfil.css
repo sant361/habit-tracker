@@ -1,5 +1,5 @@
 .tema-perfil-ht .contenedor-card {
-    grid-template-columns: minmax(0, 340px);
+    grid-template-columns: minmax(0, 420px);
 }
 
 .tema-perfil-ht .fila-card {
@@ -52,4 +52,34 @@
     color: var(--texto);
     background: var(--superficie);
     box-shadow: var(--sombra);
+}
+
+/* Formularios del perfil */
+.form-perfil {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    padding: 6px 18px 18px;
+}
+
+.form-perfil .campo {
+    width: 100%;
+}
+
+.ok-form {
+    margin: 0;
+    font-size: 13px;
+    color: var(--acento);
+}
+
+.acciones-perfil {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.zona-peligro {
+    border-color: var(--peligro);
 }
