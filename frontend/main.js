@@ -5,6 +5,7 @@ import './vistas/login.css';
 import './vistas/matriz.css';
 import './vistas/hoy.css';
 import './vistas/progreso.css';
+import './vistas/logros.css';
 import './vistas/habitos.css';
 import './vistas/perfil.css';
 import { aplicarTema } from './servicios/tema.js';

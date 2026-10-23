@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { construirMatriz } from '../servicios/matriz.js';
+import { logrosDeUsuario } from '../servicios/logrosUsuario.js';
 import { matrizACsv } from '../servicios/csv.js';
 import { asincrono } from '../utils/asincrono.js';
 import { esFecha, hoyLocal, sumarDias, rangoDias } from '../utils/fechas.js';
@@ -46,6 +47,12 @@ router.get('/resumen', asincrono(async (req, res) => {
     const semana = await construirMatriz(req.usuarioId, sumarDias(hoy, -6), hoy, hoy);
     const mes = await construirMatriz(req.usuarioId, sumarDias(hoy, -29), hoy, hoy);
     res.json({ semana: semana.tasaGlobal, mes: mes.tasaGlobal });
+}));
+
+// GET /api/estadisticas/logros?hoy=2026-10-09 -> logros con su avance, según todo el historial
+router.get('/logros', asincrono(async (req, res) => {
+    const hoy = esFecha(req.query.hoy || '') ? req.query.hoy : hoyLocal();
+    res.json(await logrosDeUsuario(req.usuarioId, hoy));
 }));
 
 export default router;

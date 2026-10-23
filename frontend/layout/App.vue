@@ -32,6 +32,7 @@
                 <Hoy v-if="vistaActiva === 'hoy'" />
                 <Matriz v-if="vistaActiva === 'matriz'" />
                 <Progreso v-if="vistaActiva === 'progreso'" />
+                <Logros v-if="vistaActiva === 'logros'" />
                 <Habitos v-if="vistaActiva === 'habitos'" />
                 <Perfil v-if="vistaActiva === 'perfil'" />
             </main>
@@ -39,6 +40,8 @@
                 <p>&copy; 2026 Habit Tracker. Todos los derechos reservados.</p>
             </footer>
         </div>
+
+        <AvisosFlotantes />
     </div>
 
     <Login v-else />
@@ -51,8 +54,11 @@ import Login from '../vistas/Login.vue';
 import Hoy from '../vistas/Hoy.vue';
 import Matriz from '../vistas/Matriz.vue';
 import Progreso from '../vistas/Progreso.vue';
+import Logros from '../vistas/Logros.vue';
 import Habitos from '../vistas/Habitos.vue';
 import Perfil from '../vistas/Perfil.vue';
+import AvisosFlotantes from '../componentes/AvisosFlotantes.vue';
+import { revisarLogros } from '../servicios/logros.js';
 
 const vistas = [
     {
@@ -71,6 +77,11 @@ const vistas = [
         icono: '<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/>'
     },
     {
+        id: 'logros',
+        texto: 'Logros',
+        icono: '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/>'
+    },
+    {
         id: 'habitos',
         texto: 'Mis hábitos',
         icono: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>'
@@ -83,6 +94,11 @@ const vistas = [
 ];
 
 const vistaActiva = ref('hoy');
+
+// Al entrar y al cambiar de vista se revisa si se ganó algún logro (por ejemplo, tras marcar hábitos)
+watch([() => sesion.token, vistaActiva], ([token]) => {
+    if (token) revisarLogros();
+}, { immediate: true });
 
 // Al cerrar sesión, la próxima vez se entra a Hoy
 watch(() => sesion.token, (token) => {
