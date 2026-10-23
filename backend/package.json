@@ -6,7 +6,11 @@
     "scripts": {
         "dev": "node --watch --env-file=.env src/server.js",
         "start": "node --env-file=.env src/server.js",
+        "start:prod": "node src/server.js",
         "seed": "node --env-file=.env src/seed.js"
+    },
+    "engines": {
+        "node": ">=22.5.0"
     },
     "dependencies": {
         "bcryptjs": "^2.4.3",

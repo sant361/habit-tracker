@@ -3,6 +3,11 @@ import db from '../db.js';
 
 export const SECRETO = process.env.JWT_SECRET || 'cambia-este-secreto';
 
+// Con el secreto por defecto cualquiera podría fabricar tokens: en producción no se permite.
+if (process.env.NODE_ENV === 'production' && SECRETO === 'cambia-este-secreto') {
+    throw new Error('Define JWT_SECRET en producción');
+}
+
 export function requerirAuth(req, res, next) {
     const token = (req.headers.authorization || '').replace('Bearer ', '');
     try {

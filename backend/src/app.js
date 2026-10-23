@@ -1,3 +1,6 @@
+import path from 'node:path';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import cors from 'cors';
 import { requerirAuth } from './middleware/auth.js';
@@ -16,6 +19,14 @@ app.use('/api/auth', rutasAuth);
 app.use('/api/habitos', requerirAuth, rutasHabitos);
 app.use('/api/registros', requerirAuth, rutasRegistros);
 app.use('/api/estadisticas', requerirAuth, rutasEstadisticas);
+
+// En producción el mismo servidor entrega la página ya compilada (frontend/dist),
+// así que todo vive bajo una sola dirección y no hace falta configurar CORS.
+const dist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../frontend/dist');
+if (existsSync(dist)) {
+    app.use(express.static(dist));
+    app.get(/^\/(?!api\/).*/, (_req, res) => res.sendFile(path.join(dist, 'index.html')));
+}
 
 app.use((err, _req, res, _next) => {
     console.error(err);

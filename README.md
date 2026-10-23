@@ -1,7 +1,7 @@
 # Habit Tracker con matriz de rendimiento
 
 Frontend: Vue 3 + Vite + axios (misma estructura que `portafolio-vue`).
-Backend: Node.js + Express + SQLite (better-sqlite3) + JWT.
+Backend: Node.js + Express + SQLite (node:sqlite) + JWT.
 
 ## Cómo correrlo
 
@@ -19,6 +19,18 @@ Terminal 2 (frontend):
     npm run dev          # http://localhost:5173  (reenvía /api al backend)
 
 Requiere Node 20.6 o superior (usa `--env-file`).
+
+## Publicarlo en internet (Render)
+
+El repo incluye `render.yaml`: un solo servicio web que compila el frontend y lo sirve junto con la API.
+
+1. Entra a https://render.com e inicia sesión con GitHub.
+2. New + > Blueprint, elige el repositorio `habit-tracker` y confirma.
+3. Render genera `JWT_SECRET` solo; al terminar te da una dirección `https://...onrender.com`.
+
+Ojo: en el plan gratis el disco se borra en cada despliegue o reinicio, así que los datos se pierden.
+Para conservarlos, añade un disco persistente (plan de pago) montado en `/var/data` y define
+`DB_FILE=/var/data/habit-tracker.db`.
 
 ## Estructura
 
