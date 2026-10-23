@@ -39,3 +39,32 @@ export function agruparSemanas(matriz) {
 export function ordenarPorCumplimiento(filas) {
     return filas.filter((f) => f.tasa !== null).sort((a, b) => b.tasa - a.tasa);
 }
+
+// ---- Cuadrante de impacto ----
+// Cruza la constancia (cumplimiento) con el impacto (peso 1-5) de cada hábito.
+export const UMBRAL_CONSTANCIA = 0.7; // desde 70 % se considera constante
+export const UMBRAL_IMPACTO = 4; // peso 4 o 5 se considera de alto impacto
+
+/**
+ * Reparte los hábitos en 4 cuadrantes:
+ *  - mantener:  alto impacto y constante      -> sigue así
+ *  - reforzar:  alto impacto y poco constante -> la prioridad
+ *  - facil:     bajo impacto y constante      -> va solo
+ *  - revisar:   bajo impacto y poco constante -> ¿vale la pena?
+ * Los hábitos sin cumplimiento calculado (aún no tocaba) quedan fuera.
+ * Dentro de cada cuadrante, primero el de mayor impacto y luego el menos constante.
+ */
+export function clasificarCuadrantes(filas) {
+    const cuadrantes = { mantener: [], reforzar: [], facil: [], revisar: [] };
+    for (const f of filas) {
+        if (f.tasa === null) continue;
+        const constante = f.tasa >= UMBRAL_CONSTANCIA;
+        const alto = f.peso >= UMBRAL_IMPACTO;
+        const clave = alto ? (constante ? 'mantener' : 'reforzar') : constante ? 'facil' : 'revisar';
+        cuadrantes[clave].push(f);
+    }
+    for (const lista of Object.values(cuadrantes)) {
+        lista.sort((a, b) => b.peso - a.peso || a.tasa - b.tasa);
+    }
+    return cuadrantes;
+}
