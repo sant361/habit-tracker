@@ -8,13 +8,16 @@ const redondear = (n) => Math.round(n * 100) / 100;
  * Matriz hábitos x días.
  * Estados de celda: hecho | fallado | pendiente (hoy sin marcar) | no-toca | futuro
  * Porcentajes ponderados por el peso (1-5) de cada hábito.
+ * Si se indica una categoría, solo se incluyen los hábitos de esa categoría
+ * (y todos los totales se calculan solo con ellos).
  */
-export function construirMatriz(usuarioId, desde, hasta, hoy) {
+export function construirMatriz(usuarioId, desde, hasta, hoy, categoria = null) {
     const dias = rangoDias(desde, hasta);
 
-    const habitos = db
+    const todos = db
         .prepare('SELECT * FROM habitos WHERE usuario_id = ? AND archivado = 0 ORDER BY id')
         .all(usuarioId);
+    const habitos = categoria ? todos.filter((h) => h.categoria === categoria) : todos;
 
     const registros = db
         .prepare(`SELECT r.habito_id, r.fecha FROM registros r

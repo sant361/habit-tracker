@@ -5,7 +5,8 @@ import { esFecha, hoyLocal, sumarDias, rangoDias } from '../utils/fechas.js';
 const router = Router();
 const MAX_DIAS = 366;
 
-// GET /api/estadisticas/matriz?desde=2026-09-10&hasta=2026-10-09&hoy=2026-10-09
+// GET /api/estadisticas/matriz?desde=2026-09-10&hasta=2026-10-09&hoy=2026-10-09&categoria=Salud
+// El parámetro categoria es opcional: si no viene, se incluyen todos los hábitos.
 router.get('/matriz', (req, res) => {
     const hoy = esFecha(req.query.hoy || '') ? req.query.hoy : hoyLocal();
     const hasta = esFecha(req.query.hasta || '') ? req.query.hasta : hoy;
@@ -14,7 +15,8 @@ router.get('/matriz', (req, res) => {
     if (desde > hasta || rangoDias(desde, hasta).length > MAX_DIAS) {
         return res.status(400).json({ error: `Rango inválido (máximo ${MAX_DIAS} días)` });
     }
-    res.json(construirMatriz(req.usuarioId, desde, hasta, hoy));
+    const categoria = typeof req.query.categoria === 'string' && req.query.categoria !== '' ? req.query.categoria : null;
+    res.json(construirMatriz(req.usuarioId, desde, hasta, hoy, categoria));
 });
 
 // GET /api/estadisticas/resumen?hoy=2026-10-09 -> cumplimiento de 7 y 30 días

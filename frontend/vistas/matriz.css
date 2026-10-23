@@ -278,3 +278,32 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Filtro por categoría */
+.filtro-categorias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.chip-categoria {
+    padding: 7px 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--texto-suave);
+    background: var(--vacio);
+    border: 1px solid transparent;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.chip-categoria:hover {
+    color: var(--texto);
+}
+
+.chip-categoria.activo {
+    color: var(--acento-texto);
+    background: var(--acento);
+}

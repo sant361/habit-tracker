@@ -8,6 +8,8 @@
             <SelectorPeriodo v-model="periodo" />
         </div>
 
+        <FiltroCategorias v-if="categorias.length > 1" v-model="categoria" :categorias="categorias" />
+
         <p v-if="error" class="estado">{{ error }}</p>
         <p v-else-if="cargando && !matriz" class="estado">Cargando...</p>
 
@@ -53,9 +55,12 @@ import api, { mensajeError } from '../servicios/api.js';
 import { sesion } from '../servicios/sesion.js';
 import { hoy, sumarDias } from '../servicios/fechas.js';
 import SelectorPeriodo from '../componentes/SelectorPeriodo.vue';
+import FiltroCategorias from '../componentes/FiltroCategorias.vue';
 import MatrizCuadricula from '../componentes/MatrizCuadricula.vue';
 
 const periodo = ref(30);
+const categoria = ref('');
+const categorias = ref([]);
 const matriz = ref(null);
 const cargando = ref(false);
 const error = ref('');
@@ -85,13 +90,30 @@ async function cargar() {
     try {
         const hasta = hoy();
         const respuesta = await api.get('/estadisticas/matriz', {
-            params: { desde: sumarDias(hasta, -(periodo.value - 1)), hasta, hoy: hasta }
+            params: {
+                desde: sumarDias(hasta, -(periodo.value - 1)),
+                hasta,
+                hoy: hasta,
+                categoria: categoria.value || undefined
+            }
         });
         matriz.value = respuesta.data;
     } catch (err) {
         error.value = mensajeError(err, 'No se pudo cargar la matriz.');
     } finally {
         cargando.value = false;
+    }
+}
+
+// Las categorías salen de los hábitos del usuario; con menos de dos no se muestra el filtro
+async function cargarCategorias() {
+    try {
+        const lista = (await api.get('/habitos')).data;
+        categorias.value = [...new Set(lista.map((h) => h.categoria).filter(Boolean))].sort((a, b) =>
+            a.localeCompare(b, 'es')
+        );
+    } catch {
+        // Sin categorías, el filtro simplemente no aparece
     }
 }
 
@@ -104,6 +126,9 @@ async function alternar(habitoId, fecha) {
     }
 }
 
-watch(periodo, cargar);
-onMounted(cargar);
+watch([periodo, categoria], cargar);
+onMounted(() => {
+    cargarCategorias();
+    cargar();
+});
 </script>
