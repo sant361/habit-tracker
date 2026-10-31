@@ -19,3 +19,12 @@ export function filtrarHabitos(habitos, texto = '', categoria = '') {
         return normalizar(h.nombre).includes(buscado) || normalizar(h.categoria).includes(buscado);
     });
 }
+
+/**
+ * Categorías para sugerir al escribir: las que contienen lo escrito (sin importar tildes ni mayúsculas).
+ * Si ya se escribió una exactamente igual, no se sugiere de nuevo.
+ */
+export function sugerirCategorias(categorias, escrito = '') {
+    const buscado = normalizar(escrito);
+    return categorias.filter((c) => normalizar(c).includes(buscado) && c !== escrito.trim());
+}

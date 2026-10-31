@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizar, categoriasDe, filtrarHabitos } from '../servicios/busqueda.js';
+import { normalizar, categoriasDe, filtrarHabitos, sugerirCategorias } from '../servicios/busqueda.js';
 
 const habitos = [
     { id: 1, nombre: 'Meditación', categoria: 'Mente' },
@@ -35,4 +35,17 @@ test('filtrarHabitos combina el texto con la categoría', () => {
     assert.deepEqual(ids(filtrarHabitos(habitos, '', 'Mente')), [1, 3]);
     assert.deepEqual(ids(filtrarHabitos(habitos, 'leer', 'Mente')), [3]);
     assert.deepEqual(ids(filtrarHabitos(habitos, 'correr', 'Mente')), []);
+});
+
+test('sugerirCategorias propone las que coinciden con lo escrito', () => {
+    const lista = ['Mente', 'Salud', 'Estudio'];
+    assert.deepEqual(sugerirCategorias(lista, ''), lista);
+    assert.deepEqual(sugerirCategorias(lista, 'SAL'), ['Salud']);
+    assert.deepEqual(sugerirCategorias(lista, 'estu'), ['Estudio']);
+    assert.deepEqual(sugerirCategorias(lista, 'zzz'), []);
+});
+
+test('sugerirCategorias no repite lo que ya está escrito completo', () => {
+    assert.deepEqual(sugerirCategorias(['Mente', 'Mentes'], 'Mente'), ['Mentes']);
+    assert.deepEqual(sugerirCategorias(['Mente'], ' Mente '), []);
 });

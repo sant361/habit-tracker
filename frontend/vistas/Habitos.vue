@@ -12,6 +12,7 @@
             <FormularioHabito
                 :key="habitoEditando ? habitoEditando.id : 'nuevo'"
                 :habito="habitoEditando"
+                :categorias="categorias"
                 @guardar="guardar"
                 @cancelar="cerrarFormulario" />
         </div>

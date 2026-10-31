@@ -7,7 +7,10 @@
 
         <label class="campo">
             Categoría (opcional)
-            <input v-model="datos.categoria" type="text" maxlength="30" placeholder="Salud, estudio...">
+            <input v-model="datos.categoria" type="text" maxlength="30" placeholder="Salud, estudio..." list="categorias-sugeridas">
+            <datalist id="categorias-sugeridas">
+                <option v-for="nombre in sugeridas" :key="nombre" :value="nombre"></option>
+            </datalist>
         </label>
 
         <div class="fila-campos">
@@ -47,11 +50,14 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue';
+import { reactive, ref, computed } from 'vue';
 import { NOMBRES_DIAS } from '../servicios/fechas.js';
+import { sugerirCategorias } from '../servicios/busqueda.js';
+
 
 const props = defineProps({
-    habito: Object // si viene, se está editando
+    habito: Object, // si viene, se está editando
+    categorias: { type: Array, default: () => [] } // las que ya usan tus otros hábitos
 });
 
 const emit = defineEmits(['guardar', 'cancelar']);
@@ -64,6 +70,9 @@ const datos = reactive({
     peso: props.habito ? props.habito.peso : 3,
     dias: props.habito ? [...props.habito.dias] : [0, 1, 2, 3, 4, 5, 6]
 });
+
+// Las que ya existen, para repetir exactamente el mismo nombre (y no crear "Salud" y "salud")
+const sugeridas = computed(() => sugerirCategorias(props.categorias, datos.categoria));
 
 function alternarDia(i) {
     const pos = datos.dias.indexOf(i);
