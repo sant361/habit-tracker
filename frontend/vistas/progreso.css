@@ -372,3 +372,118 @@
 .dias-resumen strong {
     color: var(--texto);
 }
+
+/* Mapa de calor anual */
+.mapa-scroll {
+    overflow-x: auto;
+    padding-bottom: 6px;
+}
+
+.mapa {
+    display: flex;
+    gap: 6px;
+    width: max-content;
+}
+
+.mapa-dias,
+.mapa-columna {
+    display: grid;
+    grid-template-columns: 13px;
+    grid-template-rows: 14px repeat(7, 13px);
+    gap: 3px;
+}
+
+.mapa-dias span {
+    grid-row: auto;
+    font-size: 10px;
+    line-height: 13px;
+    color: var(--texto-suave);
+}
+
+.mapa-dias::before {
+    content: '';
+}
+
+.mapa-semanas {
+    display: flex;
+    gap: 3px;
+}
+
+.mapa-mes {
+    width: 13px;
+    font-size: 10px;
+    line-height: 14px;
+    color: var(--texto-suave);
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.mapa-celda {
+    display: block;
+    width: 13px;
+    height: 13px;
+    border-radius: 3px;
+}
+
+.mapa-celda.hueco {
+    background: transparent;
+}
+
+.nivel-sin {
+    background: var(--vacio);
+}
+
+.nivel-0 {
+    background: var(--fallo);
+}
+
+.nivel-1 {
+    background: color-mix(in srgb, var(--acento) 30%, var(--vacio));
+}
+
+.nivel-2 {
+    background: color-mix(in srgb, var(--acento) 55%, var(--vacio));
+}
+
+.nivel-3 {
+    background: color-mix(in srgb, var(--acento) 80%, var(--vacio));
+}
+
+.nivel-4 {
+    background: var(--acento);
+}
+
+.mapa-pie {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin-top: 10px;
+}
+
+.mapa-resumen {
+    margin: 0;
+    font-size: 13px;
+    color: var(--texto-suave);
+}
+
+.mapa-resumen strong {
+    color: var(--texto);
+}
+
+.mapa-leyenda {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: var(--texto-suave);
+}
+
+.mapa-leyenda span:first-child {
+    margin-right: 3px;
+}
+
+.mapa-leyenda span:last-child {
+    margin-left: 3px;
+}

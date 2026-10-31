@@ -33,6 +33,12 @@
                     </div>
                 </div>
 
+                <div v-if="anual" class="tarjeta-grafico">
+                    <h2>Tu año en hábitos</h2>
+                    <p class="subtitulo-tarjeta">Cada cuadro es un día: cuanto más oscuro, más cumpliste.</p>
+                    <MapaCalor :matriz="anual" />
+                </div>
+
                 <div class="tarjeta-grafico">
                     <h2>Comparar periodos</h2>
                     <ComparativaPeriodos :matriz="matriz" />
@@ -73,10 +79,13 @@ import BarrasHabitos from '../componentes/BarrasHabitos.vue';
 import CuadranteImpacto from '../componentes/CuadranteImpacto.vue';
 import ComparativaPeriodos from '../componentes/ComparativaPeriodos.vue';
 import DiasSemana from '../componentes/DiasSemana.vue';
+import MapaCalor from '../componentes/MapaCalor.vue';
 
 const SEMANAS = 12;
+const DIAS_ANUAL = 365;
 
 const matriz = ref(null);
+const anual = ref(null);
 const cargando = ref(false);
 const error = ref('');
 
@@ -97,6 +106,16 @@ async function cargar() {
             params: { desde: sumarDias(hasta, -(SEMANAS * 7 - 1)), hasta, hoy: hasta }
         });
         matriz.value = respuesta.data;
+
+        // El mapa del año es un adorno: si su carga falla, el resto del progreso se sigue mostrando
+        try {
+            const año = await api.get('/estadisticas/matriz', {
+                params: { desde: sumarDias(hasta, -(DIAS_ANUAL - 1)), hasta, hoy: hasta }
+            });
+            anual.value = año.data;
+        } catch {
+            anual.value = null;
+        }
     } catch (err) {
         error.value = mensajeError(err, 'No se pudo cargar el progreso.');
     } finally {

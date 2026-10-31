@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { agruparSemanas, ordenarPorCumplimiento, clasificarCuadrantes, compararPeriodos, rendimientoPorDia, extremosDia } from '../servicios/progreso.js';
+import { agruparSemanas, ordenarPorCumplimiento, clasificarCuadrantes, compararPeriodos, rendimientoPorDia, extremosDia, nivelDia, construirMapaCalor } from '../servicios/progreso.js';
 
 const fila = (habitoId, nombre, peso, tasa, celdas = []) => ({ habitoId, nombre, peso, tasa, celdas });
 
@@ -148,4 +148,33 @@ test('extremosDia: devuelve el mejor y el peor día', () => {
 test('extremosDia: sin datos suficientes o todos iguales no destaca nada', () => {
     assert.equal(extremosDia([{ dia: 1, nombre: 'Lun', tasa: 0.5 }]), null);
     assert.equal(extremosDia([{ dia: 1, nombre: 'Lun', tasa: 0.5 }, { dia: 2, nombre: 'Mar', tasa: 0.5 }]), null);
+});
+
+test('nivelDia reparte el cumplimiento en niveles de intensidad', () => {
+    assert.equal(nivelDia(null), 'sin');
+    assert.equal(nivelDia(0), 0);
+    assert.equal(nivelDia(0.3), 1);
+    assert.equal(nivelDia(0.5), 2);
+    assert.equal(nivelDia(0.9), 3);
+    assert.equal(nivelDia(1), 4);
+});
+
+test('construirMapaCalor ordena por semanas de lunes a domingo y rellena el inicio', () => {
+    // 2026-10-07 es miércoles; 2026-10-12 es el lunes siguiente
+    const dias = ['2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12'];
+    const mapa = construirMapaCalor({ dias, puntajeDiario: [1, 0.4, null, 1, 0, 0.8] });
+    assert.equal(mapa.semanas.length, 2);
+    assert.deepEqual(mapa.semanas[0].map((c) => c && c.fecha), [null, null, '2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10', '2026-10-11']);
+    assert.equal(mapa.semanas[1][0].fecha, '2026-10-12');
+    assert.equal(mapa.semanas[0][4].nivel, 'sin');
+    assert.equal(mapa.semanas[0][6].nivel, 0);
+    assert.equal(mapa.diasConDatos, 5);
+    assert.equal(mapa.diasPerfectos, 2);
+});
+
+test('construirMapaCalor marca el mes solo en la columna donde empieza', () => {
+    const dias = [];
+    for (let d = new Date('2026-09-21T12:00:00'); dias.length < 28; d.setDate(d.getDate() + 1)) dias.push(d.toLocaleDateString('en-CA'));
+    const mapa = construirMapaCalor({ dias, puntajeDiario: dias.map(() => 1) });
+    assert.deepEqual(mapa.meses, [{ columna: 0, etiqueta: 'sep' }, { columna: 2, etiqueta: 'oct' }]);
 });

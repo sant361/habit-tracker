@@ -165,3 +165,58 @@ export function extremosDia(dias) {
     const peor = ordenados[ordenados.length - 1];
     return mejor.tasa === peor.tasa ? null : { mejor, peor };
 }
+
+// ---- Mapa de calor anual ----
+const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+/**
+ * Intensidad de un día según su cumplimiento: 'sin' (nada que juzgar), 0 (no cumplió nada)
+ * y de 1 (poco) a 4 (todo cumplido).
+ */
+export function nivelDia(valor) {
+    if (valor === null || valor === undefined) return 'sin';
+    if (valor <= 0) return 0;
+    if (valor < 0.5) return 1;
+    if (valor < 0.75) return 2;
+    if (valor < 1) return 3;
+    return 4;
+}
+
+/**
+ * Ordena los días de la matriz en columnas de semana (lunes a domingo) para dibujar el mapa.
+ * Devuelve { semanas, meses, diasConDatos, diasPerfectos }:
+ *  - semanas: lista de columnas; cada una tiene 7 casillas { fecha, valor, nivel } o null donde
+ *    el día queda fuera del periodo (antes del primer día de la matriz);
+ *  - meses: etiquetas { columna, etiqueta } en la primera columna de cada mes;
+ *  - diasPerfectos: días en que se cumplió todo lo que tocaba.
+ */
+export function construirMapaCalor(matriz) {
+    const semanas = [];
+    let columna = null;
+    let diasConDatos = 0;
+    let diasPerfectos = 0;
+
+    matriz.dias.forEach((fecha, i) => {
+        const dia = new Date(fecha + 'T12:00:00').getDay();
+        const posicion = (dia + 6) % 7; // lunes = 0 ... domingo = 6
+        if (!columna || posicion === 0) {
+            columna = Array(7).fill(null);
+            semanas.push(columna);
+        }
+        const valor = matriz.puntajeDiario[i];
+        if (valor !== null) diasConDatos++;
+        if (valor === 1) diasPerfectos++;
+        columna[posicion] = { fecha, valor, nivel: nivelDia(valor) };
+    });
+
+    const meses = [];
+    let mesAnterior = null;
+    semanas.forEach((semana, indice) => {
+        const primera = semana.find((c) => c);
+        const mes = Number(primera.fecha.slice(5, 7)) - 1;
+        if (mes !== mesAnterior) meses.push({ columna: indice, etiqueta: MESES_CORTOS[mes] });
+        mesAnterior = mes;
+    });
+
+    return { semanas, meses, diasConDatos, diasPerfectos };
+}
