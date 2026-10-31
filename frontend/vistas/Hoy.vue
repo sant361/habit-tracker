@@ -7,6 +7,16 @@
             </div>
         </div>
 
+        <div class="hoy-navegacion">
+            <button class="hoy-flecha" :disabled="desplazamiento <= -MAX_DIAS_ATRAS" title="Día anterior" aria-label="Día anterior" @click="irA(-1)">←</button>
+            <div class="hoy-dia">
+                <strong>{{ nombreDia(fecha, hoyISO) }}</strong>
+                <small v-if="!esHoy">{{ fechaDelDia(fecha) }}</small>
+            </div>
+            <button class="hoy-flecha" :disabled="esHoy" title="Día siguiente" aria-label="Día siguiente" @click="irA(1)">→</button>
+            <button v-if="!esHoy" class="boton secundario" @click="desplazamiento = 0">Volver a hoy</button>
+        </div>
+
         <p v-if="error" class="estado">{{ error }}</p>
         <p v-else-if="cargando && !datos" class="estado">Cargando...</p>
 
@@ -14,7 +24,7 @@
             <p v-if="!datos.filas.length" class="estado">
                 Aún no tienes hábitos. Crea el primero en "Mis hábitos".
             </p>
-            <p v-else-if="!programados.length" class="estado">Hoy no te toca ningún hábito.</p>
+            <p v-else-if="!programados.length" class="estado">{{ esHoy ? 'Hoy no te toca ningún hábito.' : 'Ese día no tocaba ningún hábito.' }}</p>
 
             <template v-else>
                 <div class="hoy-resumen">
@@ -23,7 +33,7 @@
                     </div>
                     <div>
                         <b>{{ mensaje }}</b>
-                        <small>{{ hechos }} de {{ programados.length }} hábitos completados hoy</small>
+                        <small>{{ hechos }} de {{ programados.length }} hábitos completados {{ cuando }}</small>
                     </div>
                 </div>
 
@@ -64,7 +74,7 @@
                             v-if="editando === fila.habitoId && estaHecho(fila)"
                             class="hoy-editor"
                             @submit.prevent="guardarNota(fila)">
-                            <input v-model="borrador" type="text" maxlength="280" placeholder="¿Cómo te fue hoy?" autofocus>
+                            <input v-model="borrador" type="text" maxlength="280" :placeholder="esHoy ? '¿Cómo te fue hoy?' : '¿Cómo te fue ese día?'" autofocus>
                             <button type="submit" class="boton">Guardar</button>
                             <button type="button" class="boton secundario" @click="editando = null">Cancelar</button>
                             <p v-if="errorNota" class="error-form hoy-editor-error">{{ errorNota }}</p>
@@ -74,7 +84,7 @@
             </template>
 
             <details v-if="resto.length" class="hoy-resto">
-                <summary>No tocan hoy ({{ resto.length }})</summary>
+                <summary>No tocan {{ cuando }} ({{ resto.length }})</summary>
                 <ul>
                     <li v-for="fila in resto" :key="fila.habitoId">
                         <i class="punto" :style="{ background: fila.color }"></i>
@@ -97,15 +107,21 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import api, { mensajeError } from '../servicios/api.js';
 import { sesion } from '../servicios/sesion.js';
-import { hoy } from '../servicios/fechas.js';
+import { hoy, sumarDias } from '../servicios/fechas.js';
+import { fechaLarga as fechaDelDia, nombreDia, mover, MAX_DIAS_ATRAS } from '../servicios/dia.js';
 
 const datos = ref(null);
 const cargando = ref(false);
 const error = ref('');
-const fecha = ref(hoy());
+const desplazamiento = ref(0); // 0 = hoy, -1 = ayer...
+const hoyISO = ref(hoy());
+const fecha = ref(hoyISO.value); // el día que se está viendo
+const esHoy = computed(() => desplazamiento.value === 0);
+const cuando = computed(() => (esHoy.value ? 'hoy' : 'ese día'));
+let ultimaCarga = 0;
 const editando = ref(null); // id del hábito cuya nota se está escribiendo
 const borrador = ref('');
 const errorNota = ref('');
@@ -146,24 +162,35 @@ const porcentaje = computed(() =>
 
 const mensaje = computed(() => {
     if (porcentaje.value === 100) return '¡Día completo!';
+    if (!esHoy.value) return porcentaje.value > 0 ? 'Día parcial' : 'Sin hábitos marcados';
     if (porcentaje.value >= 50) return 'Vas muy bien';
     if (porcentaje.value > 0) return 'Buen comienzo';
     return 'Empieza con uno';
 });
 
+function irA(delta) {
+    desplazamiento.value = mover(desplazamiento.value, delta);
+}
+
 async function cargar() {
+    const turno = ++ultimaCarga;
     cargando.value = true;
     error.value = '';
     try {
-        fecha.value = hoy();
+        // "hoy" se recalcula por si la página estuvo abierta pasada la medianoche
+        hoyISO.value = hoy();
+        const dia = sumarDias(hoyISO.value, desplazamiento.value);
         const respuesta = await api.get('/estadisticas/matriz', {
-            params: { desde: fecha.value, hasta: fecha.value, hoy: fecha.value }
+            params: { desde: dia, hasta: dia, hoy: hoyISO.value }
         });
+        // Si mientras tanto se pidió otro día, esta respuesta ya no sirve
+        if (turno !== ultimaCarga) return;
+        fecha.value = dia;
         datos.value = respuesta.data;
     } catch (err) {
-        error.value = mensajeError(err, 'No se pudieron cargar los hábitos de hoy.');
+        if (turno === ultimaCarga) error.value = mensajeError(err, 'No se pudieron cargar los hábitos.');
     } finally {
-        cargando.value = false;
+        if (turno === ultimaCarga) cargando.value = false;
     }
 }
 
@@ -195,6 +222,11 @@ async function guardarNota(fila) {
         errorNota.value = mensajeError(err, 'No se pudo guardar la nota.');
     }
 }
+
+watch(desplazamiento, () => {
+    editando.value = null;
+    cargar();
+});
 
 onMounted(cargar);
 </script>

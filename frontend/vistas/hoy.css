@@ -207,3 +207,42 @@
 .hoy-editor-error {
     flex-basis: 100%;
 }
+
+/* Navegar entre días */
+.hoy-navegacion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.hoy-dia {
+    display: grid;
+    min-width: 150px;
+    text-align: center;
+}
+
+.hoy-dia small {
+    color: var(--texto-suave);
+}
+
+.hoy-flecha {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    font: inherit;
+    color: var(--texto);
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.hoy-flecha:hover:not(:disabled) {
+    background: var(--vacio);
+}
+
+.hoy-flecha:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
