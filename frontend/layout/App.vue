@@ -12,7 +12,7 @@
 
             <nav class="menu-principal">
                 <button
-                    v-for="v in vistas"
+                    v-for="v in menu"
                     :key="v.id"
                     :class="['botonmenu', { activo: vistaActiva === v.id }]"
                     @click="vistaActiva = v.id">
@@ -35,6 +35,7 @@
                 <Logros v-if="vistaActiva === 'logros'" />
                 <Habitos v-if="vistaActiva === 'habitos'" />
                 <Perfil v-if="vistaActiva === 'perfil'" />
+                <Admin v-if="vistaActiva === 'admin' && esAdmin" />
             </main>
             <footer>
                 <p>&copy; 2026 Habit Tracker. Todos los derechos reservados.</p>
@@ -48,8 +49,9 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { sesion } from '../servicios/sesion.js';
+import api from '../servicios/api.js';
 import Login from '../vistas/Login.vue';
 import Hoy from '../vistas/Hoy.vue';
 import Matriz from '../vistas/Matriz.vue';
@@ -57,6 +59,7 @@ import Progreso from '../vistas/Progreso.vue';
 import Logros from '../vistas/Logros.vue';
 import Habitos from '../vistas/Habitos.vue';
 import Perfil from '../vistas/Perfil.vue';
+import Admin from '../vistas/Admin.vue';
 import AvisosFlotantes from '../componentes/AvisosFlotantes.vue';
 import { revisarLogros } from '../servicios/logros.js';
 
@@ -93,6 +96,16 @@ const vistas = [
     }
 ];
 
+const vistaAdmin = {
+    id: 'admin',
+    texto: 'Administración',
+    icono: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'
+};
+
+// El menú de administración solo aparece para las cuentas de administrador
+const esAdmin = computed(() => Boolean(sesion.usuario && sesion.usuario.esAdmin));
+const menu = computed(() => (esAdmin.value ? [...vistas, vistaAdmin] : vistas));
+
 const vistaActiva = ref('hoy');
 
 // Al entrar y al cambiar de vista se revisa si se ganó algún logro (por ejemplo, tras marcar hábitos)
@@ -104,4 +117,16 @@ watch([() => sesion.token, vistaActiva], ([token]) => {
 watch(() => sesion.token, (token) => {
     if (!token) vistaActiva.value = 'hoy';
 });
+
+// Las sesiones guardadas antes de existir el panel no saben si son admin: se pregunta al servidor
+// Si falla (sin conexión, servidor dormido), se queda con lo que ya había y se reintenta en la próxima sesión
+watch(() => sesion.token, async (token) => {
+    if (!token) return;
+    try {
+        const { data } = await api.get('/auth/yo');
+        sesion.actualizarUsuario(data.usuario);
+    } catch {
+        // nada: la app funciona igual, solo no aparece el menú de administración
+    }
+}, { immediate: true });
 </script>

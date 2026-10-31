@@ -8,6 +8,7 @@ import './vistas/progreso.css';
 import './vistas/logros.css';
 import './vistas/habitos.css';
 import './vistas/perfil.css';
+import './vistas/admin.css';
 import { aplicarTema } from './servicios/tema.js';
 
 // Se aplica antes de montar la app para que no parpadee el tema equivocado

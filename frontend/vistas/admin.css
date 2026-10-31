@@ -1,0 +1,77 @@
+.tema-admin .admin-busqueda {
+    width: 100%;
+    max-width: 360px;
+    margin: 4px 0 14px;
+    padding: 9px 12px;
+    font: inherit;
+    color: var(--texto);
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+}
+
+.tema-admin .caja-clave {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.admin-tabla-caja {
+    overflow-x: auto;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    box-shadow: var(--sombra);
+}
+
+.admin-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.admin-tabla th,
+.admin-tabla td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--borde);
+}
+
+.admin-tabla tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-tabla th {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--texto-suave);
+}
+
+.admin-tabla .num {
+    text-align: right;
+}
+
+.admin-tabla td small {
+    display: block;
+    color: var(--texto-suave);
+}
+
+.insignia-admin {
+    margin-left: 6px;
+    padding: 1px 7px;
+    font-size: 11px;
+    color: var(--acento-texto);
+    background: var(--acento);
+    border-radius: 999px;
+}
+
+.acciones-admin {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    white-space: nowrap;
+}
+
+.tema-admin .resumen {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
