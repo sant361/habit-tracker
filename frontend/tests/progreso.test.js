@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { agruparSemanas, ordenarPorCumplimiento, clasificarCuadrantes, compararPeriodos } from '../servicios/progreso.js';
+import { agruparSemanas, ordenarPorCumplimiento, clasificarCuadrantes, compararPeriodos, rendimientoPorDia, extremosDia } from '../servicios/progreso.js';
 
 const fila = (habitoId, nombre, peso, tasa, celdas = []) => ({ habitoId, nombre, peso, tasa, celdas });
 
@@ -103,4 +103,49 @@ test('compararPeriodos: los días pendientes y futuros no cuentan', () => {
     fila.celdas[1] = { programado: true, estado: 'pendiente' };
     const r = compararPeriodos(matrizDe(fila), 1);
     assert.equal(r.actual, null);
+});
+
+// ---- rendimientoPorDia / extremosDia ----
+// 2026-10-05 es lunes. Cada día de la semana tiene su propio patrón en 2 semanas (14 días).
+function diasDesde(inicio, n) {
+    return Array.from({ length: n }, (_, i) => {
+        const d = new Date(inicio + 'T12:00:00Z');
+        d.setUTCDate(d.getUTCDate() + i);
+        return d.toISOString().slice(0, 10);
+    });
+}
+
+test('rendimientoPorDia: agrupa por día de la semana y empieza en lunes', () => {
+    const dias = diasDesde('2026-10-05', 14);
+    // lunes siempre hecho; martes siempre fallado; el resto, no toca
+    const patron = dias.map((_, i) => (i % 7 === 0 ? 'x' : i % 7 === 1 ? 'o' : '-')).join('');
+    const m = { dias, filas: [filaDe(1, 'a', 1, patron)] };
+    const r = rendimientoPorDia(m);
+    assert.deepEqual(r.map((d) => d.nombre), ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']);
+    assert.equal(r[0].tasa, 1);
+    assert.equal(r[1].tasa, 0);
+    assert.equal(r[2].tasa, null);
+});
+
+test('rendimientoPorDia: pondera por el peso del hábito', () => {
+    const dias = diasDesde('2026-10-05', 1); // un lunes
+    const m = { dias, filas: [filaDe(1, 'a', 3, 'x'), filaDe(2, 'b', 1, 'o')] };
+    assert.equal(rendimientoPorDia(m)[0].tasa, 0.75);
+});
+
+test('extremosDia: devuelve el mejor y el peor día', () => {
+    const lista = [
+        { dia: 1, nombre: 'Lun', tasa: 0.9 },
+        { dia: 2, nombre: 'Mar', tasa: 0.2 },
+        { dia: 3, nombre: 'Mié', tasa: null },
+        { dia: 4, nombre: 'Jue', tasa: 0.5 }
+    ];
+    const r = extremosDia(lista);
+    assert.equal(r.mejor.nombre, 'Lun');
+    assert.equal(r.peor.nombre, 'Mar');
+});
+
+test('extremosDia: sin datos suficientes o todos iguales no destaca nada', () => {
+    assert.equal(extremosDia([{ dia: 1, nombre: 'Lun', tasa: 0.5 }]), null);
+    assert.equal(extremosDia([{ dia: 1, nombre: 'Lun', tasa: 0.5 }, { dia: 2, nombre: 'Mar', tasa: 0.5 }]), null);
 });

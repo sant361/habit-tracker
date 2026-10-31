@@ -309,3 +309,66 @@
 .comp-etiqueta.baja {
     color: var(--peligro);
 }
+
+/* Rendimiento por día de la semana */
+.dias-barras {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.dia-columna {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.dia-valor {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--texto-suave);
+}
+
+.dia-pista {
+    display: flex;
+    align-items: flex-end;
+    width: 100%;
+    max-width: 44px;
+    height: 120px;
+    overflow: hidden;
+    background: var(--vacio);
+    border-radius: 8px;
+}
+
+.dia-relleno {
+    display: block;
+    width: 100%;
+    background: var(--acento);
+    border-radius: 8px;
+    opacity: 0.55;
+}
+
+.dia-relleno.mejor {
+    opacity: 1;
+}
+
+.dia-relleno.peor {
+    background: var(--peligro);
+    opacity: 0.9;
+}
+
+.dia-nombre {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.dias-resumen {
+    margin: 14px 0 0;
+    font-size: 14px;
+    color: var(--texto-suave);
+}
+
+.dias-resumen strong {
+    color: var(--texto);
+}

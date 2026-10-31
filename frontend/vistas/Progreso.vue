@@ -49,6 +49,11 @@
                 </div>
 
                 <div class="tarjeta-grafico">
+                    <h2>Rendimiento por día de la semana</h2>
+                    <DiasSemana :matriz="matriz" />
+                </div>
+
+                <div class="tarjeta-grafico">
                     <h2>Cuadrante de impacto</h2>
                     <p class="subtitulo-tarjeta">Qué hábitos importan más y cuáles necesitan atención.</p>
                     <CuadranteImpacto :filas="matriz.filas" />
@@ -67,6 +72,7 @@ import GraficoSemanal from '../componentes/GraficoSemanal.vue';
 import BarrasHabitos from '../componentes/BarrasHabitos.vue';
 import CuadranteImpacto from '../componentes/CuadranteImpacto.vue';
 import ComparativaPeriodos from '../componentes/ComparativaPeriodos.vue';
+import DiasSemana from '../componentes/DiasSemana.vue';
 
 const SEMANAS = 12;
 

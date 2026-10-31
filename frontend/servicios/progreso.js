@@ -121,3 +121,47 @@ export function compararPeriodos(matriz, n) {
 
     return { actual, anterior, cambio: aPuntos(actual, anterior), porHabito };
 }
+
+// ---- Rendimiento por día de la semana ----
+const NOMBRES_DIA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const ORDEN_SEMANA = [1, 2, 3, 4, 5, 6, 0]; // de lunes a domingo
+
+/**
+ * Cumplimiento ponderado de cada día de la semana en todo el periodo de la matriz.
+ * Devuelve 7 elementos, de lunes a domingo: { dia, nombre, tasa } con tasa de 0 a 1 o null si
+ * ese día no tuvo nada que juzgar.
+ */
+export function rendimientoPorDia(matriz) {
+    const acumulado = Array.from({ length: 7 }, () => ({ ok: 0, total: 0 }));
+    matriz.dias.forEach((fecha, i) => {
+        const dia = new Date(fecha + 'T12:00:00').getDay();
+        for (const fila of matriz.filas) {
+            const celda = fila.celdas[i];
+            if (!celda.programado) continue;
+            if (celda.estado === 'hecho') {
+                acumulado[dia].ok += fila.peso;
+                acumulado[dia].total += fila.peso;
+            } else if (celda.estado === 'fallado') {
+                acumulado[dia].total += fila.peso;
+            }
+        }
+    });
+    return ORDEN_SEMANA.map((dia) => ({
+        dia,
+        nombre: NOMBRES_DIA[dia],
+        tasa: acumulado[dia].total ? acumulado[dia].ok / acumulado[dia].total : null
+    }));
+}
+
+/**
+ * El mejor y el peor día. Devuelve null si hay menos de dos días con datos
+ * o si todos rinden igual, porque entonces no hay nada que destacar.
+ */
+export function extremosDia(dias) {
+    const conDatos = dias.filter((d) => d.tasa !== null);
+    if (conDatos.length < 2) return null;
+    const ordenados = [...conDatos].sort((a, b) => b.tasa - a.tasa);
+    const mejor = ordenados[0];
+    const peor = ordenados[ordenados.length - 1];
+    return mejor.tasa === peor.tasa ? null : { mejor, peor };
+}
