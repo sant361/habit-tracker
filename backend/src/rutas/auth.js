@@ -6,6 +6,7 @@ import { SECRETO, requerirAuth } from '../middleware/auth.js';
 import { asincrono } from '../utils/asincrono.js';
 import { crearLimitador } from '../utils/limitador.js';
 import { generarCodigo, normalizarCodigo } from '../servicios/recuperacion.js';
+import { construirRespaldo } from '../servicios/respaldo.js';
 
 const router = Router();
 
@@ -74,6 +75,14 @@ router.put('/clave', requerirAuth, asincrono(async (req, res) => {
     }
     await db.ejecutar('UPDATE usuarios SET clave_hash = ? WHERE id = ?', [bcrypt.hashSync(claveNueva, 10), req.usuarioId]);
     res.json({ ok: true });
+}));
+
+// Descarga todos los datos de la persona (hábitos, pausas, registros y notas) como JSON
+router.get('/respaldo', requerirAuth, asincrono(async (req, res) => {
+    const respaldo = await construirRespaldo(req.usuarioId);
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="habit-tracker_respaldo.json"');
+    res.send(JSON.stringify(respaldo, null, 2));
 }));
 
 // Elimina la cuenta con todos sus hábitos y registros (se borran en cascada)

@@ -82,6 +82,19 @@
                 </form>
             </article>
 
+            <article class="fila-card">
+                <h2>Mis datos</h2>
+                <p class="ayuda-tema">
+                    Descarga un respaldo con todos tus hábitos, pausas, registros y notas. Es un archivo JSON, sin claves.
+                </p>
+                <div class="form-perfil">
+                    <p v-if="errorRespaldo" class="error-form">{{ errorRespaldo }}</p>
+                    <button type="button" class="boton" :disabled="guardando === 'respaldo'" @click="descargarRespaldo">
+                        {{ guardando === 'respaldo' ? 'Preparando...' : 'Descargar mis datos' }}
+                    </button>
+                </div>
+            </article>
+
             <article class="fila-card zona-peligro">
                 <h2>Eliminar cuenta</h2>
                 <p class="ayuda-tema">Se borran tu cuenta, tus hábitos y todo tu historial. No se puede deshacer.</p>
@@ -109,10 +122,11 @@ import { computed, reactive, ref } from 'vue';
 import api, { mensajeError } from '../servicios/api.js';
 import { sesion } from '../servicios/sesion.js';
 import { tema, cambiarTema, OPCIONES_TEMA } from '../servicios/tema.js';
+import { hoy } from '../servicios/fechas.js';
 
 const inicial = computed(() => (sesion.usuario ? sesion.usuario.nombre.charAt(0).toUpperCase() : '?'));
 
-const guardando = ref(''); // qué formulario se está enviando: 'nombre' | 'clave' | 'codigo' | 'borrado'
+const guardando = ref(''); // qué formulario se está enviando: 'nombre' | 'clave' | 'codigo' | 'respaldo' | 'borrado'
 
 // Cambiar nombre
 const nombre = ref(sesion.usuario ? sesion.usuario.nombre : '');
@@ -167,6 +181,26 @@ async function generarCodigo() {
         claveCodigo.value = '';
     } catch (err) {
         errorCodigo.value = mensajeError(err, 'No se pudo generar el código');
+    } finally {
+        guardando.value = '';
+    }
+}
+
+// Descargar respaldo
+const errorRespaldo = ref('');
+
+async function descargarRespaldo() {
+    guardando.value = 'respaldo';
+    errorRespaldo.value = '';
+    try {
+        const respuesta = await api.get('/auth/respaldo', { responseType: 'blob' });
+        const enlace = document.createElement('a');
+        enlace.href = URL.createObjectURL(respuesta.data);
+        enlace.download = `habit-tracker_respaldo_${hoy()}.json`;
+        enlace.click();
+        setTimeout(() => URL.revokeObjectURL(enlace.href), 1000);
+    } catch (err) {
+        errorRespaldo.value = mensajeError(err, 'No se pudo descargar el respaldo');
     } finally {
         guardando.value = '';
     }
