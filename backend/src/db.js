@@ -28,7 +28,8 @@ async function abrirPostgres() {
             id          SERIAL PRIMARY KEY,
             nombre      TEXT NOT NULL,
             email       TEXT NOT NULL UNIQUE,
-            clave_hash  TEXT NOT NULL
+            clave_hash  TEXT NOT NULL,
+            codigo_hash TEXT
         );
 
         CREATE TABLE IF NOT EXISTS habitos (
@@ -42,6 +43,8 @@ async function abrirPostgres() {
             archivado   INTEGER NOT NULL DEFAULT 0,
             creado_en   TEXT NOT NULL
         );
+
+        ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS codigo_hash TEXT;
 
         CREATE TABLE IF NOT EXISTS registros (
             id          SERIAL PRIMARY KEY,
@@ -73,7 +76,8 @@ async function abrirSqlite() {
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre      TEXT NOT NULL,
             email       TEXT NOT NULL UNIQUE,
-            clave_hash  TEXT NOT NULL
+            clave_hash  TEXT NOT NULL,
+            codigo_hash TEXT
         );
 
         CREATE TABLE IF NOT EXISTS habitos (
@@ -100,6 +104,10 @@ async function abrirSqlite() {
     // Bases de datos creadas antes de existir las notas: agrega la columna sin perder datos
     const columnas = sqlite.prepare('PRAGMA table_info(registros)').all();
     if (!columnas.some((c) => c.name === 'nota')) sqlite.exec('ALTER TABLE registros ADD COLUMN nota TEXT');
+
+    // Bases de datos creadas antes del código de recuperación
+    const columnasUsuarios = sqlite.prepare('PRAGMA table_info(usuarios)').all();
+    if (!columnasUsuarios.some((c) => c.name === 'codigo_hash')) sqlite.exec('ALTER TABLE usuarios ADD COLUMN codigo_hash TEXT');
 
     return {
         motor: 'sqlite',

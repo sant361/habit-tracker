@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import db from '../db.js';
 import { SECRETO, requerirAuth } from '../middleware/auth.js';
 import { asincrono } from '../utils/asincrono.js';
+import { crearLimitador } from '../utils/limitador.js';
+import { generarCodigo, normalizarCodigo } from '../servicios/recuperacion.js';
 
 const router = Router();
 
@@ -39,6 +41,9 @@ router.post('/login', asincrono(async (req, res) => {
 const MAX_NOMBRE = 60;
 const MIN_CLAVE = 6;
 const MAX_CLAVE = 72; // bcrypt solo considera los primeros 72 caracteres
+
+// Máximo de intentos de recuperación por correo cada 15 minutos (frena adivinar códigos)
+const limiteRecuperar = crearLimitador({ max: 5, ventanaMs: 15 * 60 * 1000 });
 
 // Cambia el nombre que se muestra en la app
 router.put('/perfil', requerirAuth, asincrono(async (req, res) => {
@@ -80,6 +85,45 @@ router.post('/cuenta/eliminar', requerirAuth, asincrono(async (req, res) => {
     }
     await db.ejecutar('DELETE FROM usuarios WHERE id = ?', [req.usuarioId]);
     res.status(204).end();
+}));
+
+// Genera un código de recuperación nuevo (reemplaza al anterior). Se muestra una sola vez:
+// en la base solo queda su huella (hash), así que no se puede volver a consultar.
+router.post('/codigo-recuperacion', requerirAuth, asincrono(async (req, res) => {
+    const { clave } = req.body || {};
+    const usuario = await db.uno('SELECT clave_hash FROM usuarios WHERE id = ?', [req.usuarioId]);
+    if (typeof clave !== 'string' || !bcrypt.compareSync(clave, usuario.clave_hash)) {
+        return res.status(403).json({ error: 'La clave no es correcta' });
+    }
+    const codigo = generarCodigo();
+    await db.ejecutar('UPDATE usuarios SET codigo_hash = ? WHERE id = ?', [bcrypt.hashSync(normalizarCodigo(codigo), 10), req.usuarioId]);
+    res.json({ codigo });
+}));
+
+// Cambia la clave de quien la olvidó, con el correo y el código de recuperación.
+// El código sirve una sola vez: al usarlo hay que generar otro desde el perfil.
+router.post('/recuperar', asincrono(async (req, res) => {
+    const { email, codigo, claveNueva } = req.body || {};
+    if (typeof email !== 'string' || typeof codigo !== 'string' || typeof claveNueva !== 'string') {
+        return res.status(400).json({ error: 'Correo, código y clave nueva son obligatorios' });
+    }
+    if (claveNueva.length < MIN_CLAVE || claveNueva.length > MAX_CLAVE) {
+        return res.status(400).json({ error: `La clave nueva debe tener entre ${MIN_CLAVE} y ${MAX_CLAVE} caracteres` });
+    }
+
+    const correo = email.trim().toLowerCase();
+    if (!limiteRecuperar.intentar(correo)) {
+        return res.status(429).json({ error: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo' });
+    }
+
+    const usuario = await db.uno('SELECT id, codigo_hash FROM usuarios WHERE email = ?', [correo]);
+    const valido = usuario && usuario.codigo_hash && bcrypt.compareSync(normalizarCodigo(codigo), usuario.codigo_hash);
+    // El mismo mensaje para "no existe" y "código malo": no revela qué correos están registrados
+    if (!valido) return res.status(403).json({ error: 'Correo o código incorrecto' });
+
+    await db.ejecutar('UPDATE usuarios SET clave_hash = ?, codigo_hash = NULL WHERE id = ?', [bcrypt.hashSync(claveNueva, 10), usuario.id]);
+    limiteRecuperar.reiniciar(correo);
+    res.json({ ok: true });
 }));
 
 export default router;

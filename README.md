@@ -41,6 +41,17 @@ Si defines la variable `DATABASE_URL`, la app usa PostgreSQL y los datos se cons
 Para cargar el usuario de ejemplo en esa base: `cd backend`, define `DATABASE_URL` en tu `.env` y corre `npm run seed`.
 Sin `DATABASE_URL` todo sigue funcionando con SQLite, como en desarrollo.
 
+## Recuperar la clave
+
+La app no envía correos, así que la recuperación usa un **código de recuperación** (formato `XXXX-XXXX-XXXX`):
+
+1. Con la sesión iniciada, en *Mi perfil > Código de recuperación*, escribe tu clave y pulsa *Generar código*.
+   Se muestra una sola vez; en la base solo queda su huella (hash). Cada código nuevo anula el anterior.
+2. Si olvidas la clave, en la pantalla de entrada pulsa *¿Olvidaste tu clave?* y escribe tu correo, el código y la clave nueva.
+3. El código sirve una vez: al usarlo hay que generar otro. Se permiten 5 intentos por correo cada 15 minutos.
+
+Quien nunca generó un código no puede recuperar la clave por esta vía.
+
 ## Pruebas automáticas
 
     cd backend && npm test      # fechas, rachas, CSV y la matriz (con SQLite en memoria)

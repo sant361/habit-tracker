@@ -61,6 +61,27 @@
                 </div>
             </article>
 
+            <article class="fila-card">
+                <h2>Código de recuperación</h2>
+                <p class="ayuda-tema">
+                    Sirve para cambiar tu clave si la olvidas. Se muestra una sola vez y cada código nuevo anula el anterior.
+                </p>
+                <form class="form-perfil" @submit.prevent="generarCodigo">
+                    <label class="campo">
+                        Tu clave actual
+                        <input v-model="claveCodigo" type="password" autocomplete="current-password" required>
+                    </label>
+                    <p v-if="errorCodigo" class="error-form">{{ errorCodigo }}</p>
+                    <div v-if="codigoNuevo" class="codigo-nuevo">
+                        <code>{{ codigoNuevo }}</code>
+                        <small>Guárdalo ahora en un lugar seguro: no se vuelve a mostrar.</small>
+                    </div>
+                    <button type="submit" class="boton" :disabled="guardando === 'codigo'">
+                        {{ codigoNuevo ? 'Generar otro código' : 'Generar código' }}
+                    </button>
+                </form>
+            </article>
+
             <article class="fila-card zona-peligro">
                 <h2>Eliminar cuenta</h2>
                 <p class="ayuda-tema">Se borran tu cuenta, tus hábitos y todo tu historial. No se puede deshacer.</p>
@@ -91,7 +112,7 @@ import { tema, cambiarTema, OPCIONES_TEMA } from '../servicios/tema.js';
 
 const inicial = computed(() => (sesion.usuario ? sesion.usuario.nombre.charAt(0).toUpperCase() : '?'));
 
-const guardando = ref(''); // qué formulario se está enviando: 'nombre' | 'clave' | 'borrado'
+const guardando = ref(''); // qué formulario se está enviando: 'nombre' | 'clave' | 'codigo' | 'borrado'
 
 // Cambiar nombre
 const nombre = ref(sesion.usuario ? sesion.usuario.nombre : '');
@@ -127,6 +148,25 @@ async function guardarClave() {
         Object.assign(mensajeClave, { texto: 'Clave actualizada', ok: true });
     } catch (err) {
         Object.assign(mensajeClave, { texto: mensajeError(err, 'No se pudo cambiar la clave'), ok: false });
+    } finally {
+        guardando.value = '';
+    }
+}
+
+// Código de recuperación
+const claveCodigo = ref('');
+const codigoNuevo = ref('');
+const errorCodigo = ref('');
+
+async function generarCodigo() {
+    guardando.value = 'codigo';
+    errorCodigo.value = '';
+    try {
+        const { data } = await api.post('/auth/codigo-recuperacion', { clave: claveCodigo.value });
+        codigoNuevo.value = data.codigo;
+        claveCodigo.value = '';
+    } catch (err) {
+        errorCodigo.value = mensajeError(err, 'No se pudo generar el código');
     } finally {
         guardando.value = '';
     }

@@ -89,3 +89,31 @@
         display: none;
     }
 }
+
+/* Recuperar la clave */
+.enlace-recuperar {
+    padding: 4px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--texto-suave);
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.enlace-recuperar:hover {
+    color: var(--texto);
+}
+
+.ayuda-recuperar {
+    margin: 0;
+    font-size: 13px;
+    color: var(--texto-suave);
+}
+
+.tema-login .ok-form {
+    margin: 0;
+    font-size: 13px;
+    color: var(--acento);
+}
