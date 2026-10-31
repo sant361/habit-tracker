@@ -228,3 +228,21 @@
 .lista-archivados small {
     color: var(--texto-suave);
 }
+
+/* Búsqueda de hábitos */
+.busqueda-habitos {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.busqueda-habitos input[type='search'] {
+    width: 100%;
+    max-width: 360px;
+    padding: 9px 12px;
+    font: inherit;
+    color: var(--texto);
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+}

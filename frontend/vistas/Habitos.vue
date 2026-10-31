@@ -16,15 +16,20 @@
                 @cancelar="cerrarFormulario" />
         </div>
 
+        <div v-if="habitos.length >= MIN_PARA_BUSCAR" class="busqueda-habitos">
+            <input v-model="busqueda" type="search" placeholder="Buscar hábito..." aria-label="Buscar hábito">
+            <FiltroCategorias v-if="categorias.length > 1" v-model="categoriaFiltro" :categorias="categorias" />
+        </div>
+
         <p v-if="error" class="estado">{{ error }}</p>
 
         <div class="contenedor-card">
             <TarjetaHabito
-                v-for="(h, i) in habitos"
+                v-for="(h, i) in visibles"
                 :key="h.id"
                 :habito="h"
-                :primero="i === 0"
-                :ultimo="i === habitos.length - 1"
+                :primero="filtrando || i === 0"
+                :ultimo="filtrando || i === visibles.length - 1"
                 @editar="abrirFormulario"
                 @archivar="archivar"
                 @pausar="(hasta) => pausar(h, hasta)"
@@ -35,6 +40,8 @@
         <p v-if="!habitos.length && !error && !mostrarFormulario" class="estado">
             Aún no tienes hábitos. Pulsa "Nuevo hábito" para crear el primero.
         </p>
+        <p v-else-if="habitos.length && !visibles.length" class="estado">Ningún hábito coincide con tu búsqueda.</p>
+        <p v-if="filtrando && visibles.length" class="estado">Para cambiar el orden, quita la búsqueda o el filtro.</p>
 
         <div class="archivados">
             <button class="boton secundario" @click="alternarArchivados">
@@ -58,11 +65,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import api, { mensajeError } from '../servicios/api.js';
 import { hoy } from '../servicios/fechas.js';
 import TarjetaHabito from '../componentes/TarjetaHabito.vue';
 import FormularioHabito from '../componentes/FormularioHabito.vue';
+import FiltroCategorias from '../componentes/FiltroCategorias.vue';
+import { filtrarHabitos, categoriasDe } from '../servicios/busqueda.js';
 import { moverElemento } from '../servicios/orden.js';
 import { textoArchivado, textoRestaurado } from '../servicios/archivados.js';
 import { avisar } from '../servicios/avisos.js';
@@ -72,6 +81,19 @@ const error = ref('');
 const mostrarFormulario = ref(false);
 const habitoEditando = ref(null);
 const archivados = ref([]);
+
+// Búsqueda: solo aparece cuando hay suficientes hábitos como para que valga la pena
+const MIN_PARA_BUSCAR = 5;
+const busqueda = ref('');
+const categoriaFiltro = ref('');
+const categorias = computed(() => categoriasDe(habitos.value));
+const visibles = computed(() => filtrarHabitos(habitos.value, busqueda.value, categoriaFiltro.value));
+const filtrando = computed(() => busqueda.value.trim() !== '' || categoriaFiltro.value !== '');
+
+// Si la categoría elegida ya no existe (se borró o se archivó su último hábito), se quita el filtro
+watch(categorias, (lista) => {
+    if (categoriaFiltro.value && !lista.includes(categoriaFiltro.value)) categoriaFiltro.value = '';
+});
 const verArchivados = ref(false);
 
 async function cargar() {
