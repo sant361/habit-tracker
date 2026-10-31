@@ -93,6 +93,17 @@
                         {{ guardando === 'respaldo' ? 'Preparando...' : 'Descargar mis datos' }}
                     </button>
                 </div>
+
+                <p class="ayuda-tema">
+                    ¿Tienes un respaldo? Impórtalo para agregar sus hábitos a esta cuenta. Los que ya existan con el mismo nombre no se tocan.
+                </p>
+                <div class="form-perfil">
+                    <p v-if="mensajeImportar.texto" :class="mensajeImportar.ok ? 'ok-form' : 'error-form'">{{ mensajeImportar.texto }}</p>
+                    <input ref="archivoRespaldo" type="file" accept=".json,application/json" hidden @change="importarRespaldo">
+                    <button type="button" class="boton secundario" :disabled="guardando === 'importar'" @click="archivoRespaldo.click()">
+                        {{ guardando === 'importar' ? 'Importando...' : 'Importar respaldo' }}
+                    </button>
+                </div>
             </article>
 
             <article class="fila-card zona-peligro">
@@ -123,10 +134,11 @@ import api, { mensajeError } from '../servicios/api.js';
 import { sesion } from '../servicios/sesion.js';
 import { tema, cambiarTema, OPCIONES_TEMA } from '../servicios/tema.js';
 import { hoy } from '../servicios/fechas.js';
+import { MAX_BYTES, textoImportacion, leerRespaldo } from '../servicios/respaldo.js';
 
 const inicial = computed(() => (sesion.usuario ? sesion.usuario.nombre.charAt(0).toUpperCase() : '?'));
 
-const guardando = ref(''); // qué formulario se está enviando: 'nombre' | 'clave' | 'codigo' | 'respaldo' | 'borrado'
+const guardando = ref(''); // qué formulario se está enviando: 'nombre' | 'clave' | 'codigo' | 'respaldo' | 'importar' | 'borrado'
 
 // Cambiar nombre
 const nombre = ref(sesion.usuario ? sesion.usuario.nombre : '');
@@ -201,6 +213,31 @@ async function descargarRespaldo() {
         setTimeout(() => URL.revokeObjectURL(enlace.href), 1000);
     } catch (err) {
         errorRespaldo.value = mensajeError(err, 'No se pudo descargar el respaldo');
+    } finally {
+        guardando.value = '';
+    }
+}
+
+// Importar respaldo
+const archivoRespaldo = ref(null);
+const mensajeImportar = reactive({ texto: '', ok: false });
+
+async function importarRespaldo(evento) {
+    const archivo = evento.target.files[0];
+    evento.target.value = ''; // así se puede elegir el mismo archivo otra vez
+    if (!archivo) return;
+
+    guardando.value = 'importar';
+    mensajeImportar.texto = '';
+    try {
+        if (archivo.size > MAX_BYTES) throw new Error('El archivo es demasiado grande (máximo 5 MB)');
+        const respaldo = leerRespaldo(await archivo.text());
+        const { data } = await api.post('/auth/respaldo/importar', respaldo);
+        Object.assign(mensajeImportar, { texto: textoImportacion(data), ok: true });
+    } catch (err) {
+        // Los errores del servidor traen su mensaje; los del archivo (JSON malo, muy grande) también
+        const texto = err.response ? mensajeError(err, 'No se pudo importar el respaldo') : err.message || 'No se pudo importar el respaldo';
+        Object.assign(mensajeImportar, { texto, ok: false });
     } finally {
         guardando.value = '';
     }

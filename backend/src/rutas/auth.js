@@ -7,6 +7,7 @@ import { asincrono } from '../utils/asincrono.js';
 import { crearLimitador } from '../utils/limitador.js';
 import { generarCodigo, normalizarCodigo } from '../servicios/recuperacion.js';
 import { construirRespaldo } from '../servicios/respaldo.js';
+import { importarRespaldo } from '../servicios/importacion.js';
 
 const router = Router();
 
@@ -83,6 +84,13 @@ router.get('/respaldo', requerirAuth, asincrono(async (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="habit-tracker_respaldo.json"');
     res.send(JSON.stringify(respaldo, null, 2));
+}));
+
+// Agrega los hábitos de un respaldo descargado antes. Los que ya existen (mismo nombre) se omiten.
+router.post('/respaldo/importar', requerirAuth, asincrono(async (req, res) => {
+    const resultado = await importarRespaldo(req.usuarioId, req.body);
+    if (resultado.error) return res.status(resultado.estado).json({ error: resultado.error });
+    res.json(resultado);
 }));
 
 // Elimina la cuenta con todos sus hábitos y registros (se borran en cascada)

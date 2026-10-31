@@ -12,7 +12,8 @@ import rutasEstadisticas from './rutas/estadisticas.js';
 const app = express();
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }));
-app.use(express.json());
+// Límite más alto que el normal (100 kb) porque un respaldo con un año de registros puede pesar más
+app.use(express.json({ limit: '5mb' }));
 
 app.get('/api/salud', (_req, res) => res.json({ ok: true }));
 app.use('/api/auth', rutasAuth);
