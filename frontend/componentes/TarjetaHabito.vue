@@ -39,6 +39,7 @@
 
         <div class="acciones-tarjeta">
             <button class="boton secundario" @click="$emit('editar', habito)">Editar</button>
+            <button class="boton secundario" title="Crear una copia de este hábito" @click="$emit('duplicar', habito)">Duplicar</button>
             <button v-if="habito.pausa" class="boton secundario" @click="$emit('reanudar', habito)">
                 {{ habito.pausa.activa ? 'Reanudar' : 'Cancelar pausa' }}
             </button>
@@ -59,7 +60,7 @@ defineProps({
     ultimo: Boolean // ya está al final
 });
 
-const emit = defineEmits(['editar', 'archivar', 'pausar', 'reanudar', 'mover']);
+const emit = defineEmits(['editar', 'archivar', 'pausar', 'reanudar', 'mover', 'duplicar']);
 
 const hoyISO = hoy();
 const pausando = ref(false);

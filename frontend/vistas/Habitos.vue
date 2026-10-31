@@ -32,6 +32,7 @@
                 :primero="filtrando || i === 0"
                 :ultimo="filtrando || i === visibles.length - 1"
                 @editar="abrirFormulario"
+                @duplicar="duplicar"
                 @archivar="archivar"
                 @pausar="(hasta) => pausar(h, hasta)"
                 @reanudar="reanudar"
@@ -76,6 +77,7 @@ import { filtrarHabitos, categoriasDe } from '../servicios/busqueda.js';
 import { moverElemento } from '../servicios/orden.js';
 import { textoArchivado, textoRestaurado } from '../servicios/archivados.js';
 import { avisar } from '../servicios/avisos.js';
+import { datosDeCopia } from '../servicios/duplicar.js';
 
 const habitos = ref([]);
 const error = ref('');
@@ -123,6 +125,22 @@ async function guardar(datos) {
         await cargar();
     } catch (err) {
         error.value = mensajeError(err, 'No se pudo guardar el hábito.');
+    }
+}
+
+// Crea una copia con los mismos ajustes; queda al final de la lista y empieza hoy
+async function duplicar(habito) {
+    error.value = '';
+    try {
+        // Los archivados también cuentan para el nombre, por si se restaura después
+        const archivadosLista = (await api.get('/habitos/archivados')).data;
+        const nombres = [...habitos.value, ...archivadosLista].map((h) => h.nombre);
+        const { data } = await api.post('/habitos', datosDeCopia(habito, nombres, hoy()));
+        avisar(`Se creó "${data.nombre}".`);
+        await cargar();
+        if (verArchivados.value) await cargarArchivados();
+    } catch (err) {
+        error.value = mensajeError(err, 'No se pudo duplicar el hábito.');
     }
 }
 
