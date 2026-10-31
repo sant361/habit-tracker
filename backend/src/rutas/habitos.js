@@ -4,6 +4,7 @@ import { esFecha, hoyLocal } from '../utils/fechas.js';
 import { asincrono } from '../utils/asincrono.js';
 import { pausasPorHabito, pausar, reanudar } from '../servicios/pausas.js';
 import { pausaVigente } from '../utils/pausas.js';
+import { guardarOrden } from '../servicios/orden.js';
 
 const router = Router();
 
@@ -36,7 +37,7 @@ const leerHoy = (req) => (esFecha(req.query.hoy || '') ? req.query.hoy : hoyLoca
 
 router.get('/', asincrono(async (req, res) => {
     const hoy = leerHoy(req);
-    const filas = await db.todos('SELECT * FROM habitos WHERE usuario_id = ? AND archivado = 0 ORDER BY id', [req.usuarioId]);
+    const filas = await db.todos('SELECT * FROM habitos WHERE usuario_id = ? AND archivado = 0 ORDER BY orden, id', [req.usuarioId]);
     const pausas = await pausasPorHabito(req.usuarioId);
     res.json(filas.map((h) => aSalida(h, pausaVigente(pausas.get(h.id) || [], hoy))));
 }));
@@ -46,9 +47,11 @@ router.post('/', asincrono(async (req, res) => {
     if (error) return res.status(400).json({ error });
 
     const { nombre, categoria, color, dias, peso, creadoEn } = req.body;
+    // Un hábito nuevo va al final de la lista
+    const { ultimo } = await db.uno('SELECT COALESCE(MAX(orden), 0) AS ultimo FROM habitos WHERE usuario_id = ?', [req.usuarioId]);
     const id = await db.insertar(
-        `INSERT INTO habitos (usuario_id, nombre, categoria, color, dias, peso, creado_en)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO habitos (usuario_id, nombre, categoria, color, dias, peso, creado_en, orden)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
             req.usuarioId,
             nombre.trim(),
@@ -56,11 +59,20 @@ router.post('/', asincrono(async (req, res) => {
             color || '#38bdf8',
             JSON.stringify(dias),
             peso,
-            esFecha(creadoEn || '') ? creadoEn : hoyLocal()
+            esFecha(creadoEn || '') ? creadoEn : hoyLocal(),
+            Number(ultimo) + 1
         ]
     );
     const creado = await db.uno('SELECT * FROM habitos WHERE id = ?', [id]);
     res.status(201).json(aSalida(creado));
+}));
+
+// Guarda el orden de los hábitos: { ids: [3, 1, 2] }, del primero al último.
+// Va antes de /:id para que "orden" no se tome por un id.
+router.put('/orden', asincrono(async (req, res) => {
+    const resultado = await guardarOrden(req.usuarioId, (req.body || {}).ids);
+    if (resultado.error) return res.status(resultado.estado).json({ error: resultado.error });
+    res.json({ ok: true });
 }));
 
 router.put('/:id', asincrono(async (req, res) => {

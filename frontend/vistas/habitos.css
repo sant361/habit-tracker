@@ -154,3 +154,42 @@
 .tarjeta-habito .acciones-tarjeta {
     flex-wrap: wrap;
 }
+
+/* Cambiar el orden de los hábitos */
+.cabecera-tarjeta {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    padding-right: 12px;
+}
+
+.orden-botones {
+    display: flex;
+    gap: 4px;
+    margin-top: 12px;
+}
+
+.orden-boton {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1;
+    color: var(--texto-suave);
+    background: var(--vacio);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.orden-boton:hover:not(:disabled) {
+    color: var(--texto);
+    background: var(--borde);
+}
+
+.orden-boton:disabled {
+    opacity: 0.35;
+    cursor: default;
+}

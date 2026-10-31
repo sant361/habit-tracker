@@ -17,7 +17,7 @@ const redondear = (n) => Math.round(n * 100) / 100;
 export async function construirMatriz(usuarioId, desde, hasta, hoy, categoria = null) {
     const dias = rangoDias(desde, hasta);
 
-    const todos = await db.todos('SELECT * FROM habitos WHERE usuario_id = ? AND archivado = 0 ORDER BY id', [usuarioId]);
+    const todos = await db.todos('SELECT * FROM habitos WHERE usuario_id = ? AND archivado = 0 ORDER BY orden, id', [usuarioId]);
     const habitos = categoria ? todos.filter((h) => h.categoria === categoria) : todos;
 
     const registros = await db.todos(

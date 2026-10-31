@@ -1,6 +1,12 @@
 <template>
     <article class="fila-card tarjeta-habito" :style="{ borderLeftColor: habito.color }">
-        <h2>{{ habito.nombre }}</h2>
+        <div class="cabecera-tarjeta">
+            <h2>{{ habito.nombre }}</h2>
+            <div class="orden-botones">
+                <button class="orden-boton" :disabled="primero" title="Mover antes" aria-label="Mover antes" @click="$emit('mover', -1)">←</button>
+                <button class="orden-boton" :disabled="ultimo" title="Mover después" aria-label="Mover después" @click="$emit('mover', 1)">→</button>
+            </div>
+        </div>
         <p class="categoria">{{ habito.categoria || 'Sin categoría' }}</p>
 
         <div class="chips-dias">
@@ -48,10 +54,12 @@ import { NOMBRES_DIAS, hoy } from '../servicios/fechas.js';
 import { textoPausa } from '../servicios/pausas.js';
 
 defineProps({
-    habito: Object
+    habito: Object,
+    primero: Boolean, // ya está al principio de la lista
+    ultimo: Boolean // ya está al final
 });
 
-const emit = defineEmits(['editar', 'archivar', 'pausar', 'reanudar']);
+const emit = defineEmits(['editar', 'archivar', 'pausar', 'reanudar', 'mover']);
 
 const hoyISO = hoy();
 const pausando = ref(false);

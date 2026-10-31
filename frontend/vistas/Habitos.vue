@@ -20,13 +20,16 @@
 
         <div class="contenedor-card">
             <TarjetaHabito
-                v-for="h in habitos"
+                v-for="(h, i) in habitos"
                 :key="h.id"
                 :habito="h"
+                :primero="i === 0"
+                :ultimo="i === habitos.length - 1"
                 @editar="abrirFormulario"
                 @archivar="archivar"
                 @pausar="(hasta) => pausar(h, hasta)"
-                @reanudar="reanudar" />
+                @reanudar="reanudar"
+                @mover="(delta) => mover(h, delta)" />
         </div>
 
         <p v-if="!habitos.length && !error && !mostrarFormulario" class="estado">
@@ -41,6 +44,7 @@ import api, { mensajeError } from '../servicios/api.js';
 import { hoy } from '../servicios/fechas.js';
 import TarjetaHabito from '../componentes/TarjetaHabito.vue';
 import FormularioHabito from '../componentes/FormularioHabito.vue';
+import { moverElemento } from '../servicios/orden.js';
 
 const habitos = ref([]);
 const error = ref('');
@@ -103,6 +107,22 @@ async function reanudar(habito) {
         await cargar();
     } catch (err) {
         error.value = mensajeError(err, 'No se pudo reanudar el hábito.');
+    }
+}
+
+// Cambia el orden al instante y lo guarda; si falla, vuelve a cargar el que tiene el servidor
+async function mover(habito, delta) {
+    const actual = habitos.value;
+    const nueva = moverElemento(actual, actual.findIndex((h) => h.id === habito.id), delta);
+    if (nueva === actual) return;
+
+    error.value = '';
+    habitos.value = nueva;
+    try {
+        await api.put('/habitos/orden', { ids: nueva.map((h) => h.id) });
+    } catch (err) {
+        error.value = mensajeError(err, 'No se pudo guardar el orden.');
+        await cargar();
     }
 }
 
