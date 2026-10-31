@@ -35,6 +35,25 @@
         <p v-if="!habitos.length && !error && !mostrarFormulario" class="estado">
             Aún no tienes hábitos. Pulsa "Nuevo hábito" para crear el primero.
         </p>
+
+        <div class="archivados">
+            <button class="boton secundario" @click="alternarArchivados">
+                {{ verArchivados ? 'Ocultar archivados' : 'Ver archivados' }}
+            </button>
+
+            <template v-if="verArchivados">
+                <p v-if="!archivados.length" class="estado">No tienes hábitos archivados.</p>
+                <ul v-else class="lista-archivados">
+                    <li v-for="h in archivados" :key="h.id" :style="{ borderLeftColor: h.color }">
+                        <div>
+                            <strong>{{ h.nombre }}</strong>
+                            <small>{{ h.categoria || 'Sin categoría' }} · {{ textoArchivado(h) }}</small>
+                        </div>
+                        <button class="boton secundario" @click="restaurar(h)">Restaurar</button>
+                    </li>
+                </ul>
+            </template>
+        </div>
     </section>
 </template>
 
@@ -45,11 +64,15 @@ import { hoy } from '../servicios/fechas.js';
 import TarjetaHabito from '../componentes/TarjetaHabito.vue';
 import FormularioHabito from '../componentes/FormularioHabito.vue';
 import { moverElemento } from '../servicios/orden.js';
+import { textoArchivado, textoRestaurado } from '../servicios/archivados.js';
+import { avisar } from '../servicios/avisos.js';
 
 const habitos = ref([]);
 const error = ref('');
 const mostrarFormulario = ref(false);
 const habitoEditando = ref(null);
+const archivados = ref([]);
+const verArchivados = ref(false);
 
 async function cargar() {
     try {
@@ -83,10 +106,35 @@ async function guardar(datos) {
 async function archivar(habito) {
     if (!confirm(`¿Archivar "${habito.nombre}"? Dejará de aparecer en la matriz.`)) return;
     try {
-        await api.delete('/habitos/' + habito.id);
+        await api.delete('/habitos/' + habito.id, { params: { hoy: hoy() } });
         await cargar();
+        if (verArchivados.value) await cargarArchivados();
     } catch (err) {
         error.value = mensajeError(err, 'No se pudo archivar el hábito.');
+    }
+}
+
+async function cargarArchivados() {
+    try {
+        archivados.value = (await api.get('/habitos/archivados')).data;
+    } catch (err) {
+        error.value = mensajeError(err, 'No se pudieron cargar los hábitos archivados.');
+    }
+}
+
+async function alternarArchivados() {
+    verArchivados.value = !verArchivados.value;
+    if (verArchivados.value) await cargarArchivados();
+}
+
+async function restaurar(habito) {
+    error.value = '';
+    try {
+        const { data } = await api.post(`/habitos/${habito.id}/restaurar`, null, { params: { hoy: hoy() } });
+        avisar(textoRestaurado(habito.nombre, data.pausa));
+        await Promise.all([cargar(), cargarArchivados()]);
+    } catch (err) {
+        error.value = mensajeError(err, 'No se pudo restaurar el hábito.');
     }
 }
 

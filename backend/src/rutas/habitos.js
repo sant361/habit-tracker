@@ -5,6 +5,7 @@ import { asincrono } from '../utils/asincrono.js';
 import { pausasPorHabito, pausar, reanudar } from '../servicios/pausas.js';
 import { pausaVigente } from '../utils/pausas.js';
 import { guardarOrden } from '../servicios/orden.js';
+import { listarArchivados, restaurar } from '../servicios/archivados.js';
 
 const router = Router();
 
@@ -75,6 +76,18 @@ router.put('/orden', asincrono(async (req, res) => {
     res.json({ ok: true });
 }));
 
+// Hábitos archivados, para poder restaurarlos. Va antes de las rutas con :id.
+router.get('/archivados', asincrono(async (req, res) => {
+    res.json((await listarArchivados(req.usuarioId)).map((h) => ({ ...aSalida(h), archivadoEn: h.archivado_en || null })));
+}));
+
+router.post('/:id/restaurar', asincrono(async (req, res) => {
+    const id = leerId(req.params.id);
+    const resultado = id === null ? { error: 'Hábito archivado no encontrado', estado: 404 } : await restaurar(req.usuarioId, id, leerHoy(req));
+    if (resultado.error) return res.status(resultado.estado).json({ error: resultado.error });
+    res.json({ ok: true, pausa: resultado.pausa });
+}));
+
 router.put('/:id', asincrono(async (req, res) => {
     const error = validar(req.body);
     if (error) return res.status(400).json({ error });
@@ -96,8 +109,8 @@ router.put('/:id', asincrono(async (req, res) => {
 router.delete('/:id', asincrono(async (req, res) => {
     const id = leerId(req.params.id);
     const info = id === null ? { cambios: 0 } : await db.ejecutar(
-        'UPDATE habitos SET archivado = 1 WHERE id = ? AND usuario_id = ?',
-        [id, req.usuarioId]
+        'UPDATE habitos SET archivado = 1, archivado_en = ? WHERE id = ? AND usuario_id = ? AND archivado = 0',
+        [leerHoy(req), id, req.usuarioId]
     );
     if (!info.cambios) return res.status(404).json({ error: 'Hábito no encontrado' });
     res.status(204).end();

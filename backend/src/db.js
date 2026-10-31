@@ -42,12 +42,15 @@ async function abrirPostgres() {
             peso        INTEGER NOT NULL DEFAULT 1,
             archivado   INTEGER NOT NULL DEFAULT 0,
             creado_en   TEXT NOT NULL,
-            orden       INTEGER NOT NULL DEFAULT 0
+            orden       INTEGER NOT NULL DEFAULT 0,
+            archivado_en TEXT
         );
 
         ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS codigo_hash TEXT;
 
         ALTER TABLE habitos ADD COLUMN IF NOT EXISTS orden INTEGER NOT NULL DEFAULT 0;
+
+        ALTER TABLE habitos ADD COLUMN IF NOT EXISTS archivado_en TEXT;
 
         CREATE TABLE IF NOT EXISTS registros (
             id          SERIAL PRIMARY KEY,
@@ -100,7 +103,8 @@ async function abrirSqlite() {
             peso        INTEGER NOT NULL DEFAULT 1,
             archivado   INTEGER NOT NULL DEFAULT 0,
             creado_en   TEXT NOT NULL,
-            orden       INTEGER NOT NULL DEFAULT 0
+            orden       INTEGER NOT NULL DEFAULT 0,
+            archivado_en TEXT
         );
 
         CREATE TABLE IF NOT EXISTS registros (
@@ -130,6 +134,9 @@ async function abrirSqlite() {
     // Bases de datos creadas antes de poder ordenar los hábitos
     const columnasHabitos = sqlite.prepare('PRAGMA table_info(habitos)').all();
     if (!columnasHabitos.some((c) => c.name === 'orden')) sqlite.exec('ALTER TABLE habitos ADD COLUMN orden INTEGER NOT NULL DEFAULT 0');
+
+    // Bases de datos creadas antes de poder restaurar hábitos archivados
+    if (!columnasHabitos.some((c) => c.name === 'archivado_en')) sqlite.exec('ALTER TABLE habitos ADD COLUMN archivado_en TEXT');
 
     return {
         motor: 'sqlite',

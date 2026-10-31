@@ -193,3 +193,38 @@
     opacity: 0.35;
     cursor: default;
 }
+
+/* Hábitos archivados */
+.archivados {
+    margin-top: 24px;
+}
+
+.lista-archivados {
+    display: grid;
+    gap: 8px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.lista-archivados li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-left: 6px solid var(--acento);
+    border-radius: 12px;
+}
+
+.lista-archivados div {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.lista-archivados small {
+    color: var(--texto-suave);
+}
