@@ -304,3 +304,13 @@
     background: var(--acento);
     color: var(--acento-texto);
 }
+
+/* Aviso de racha en riesgo */
+.hoy-riesgo {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--texto);
+    background: var(--fallo);
+    border-radius: 12px;
+}

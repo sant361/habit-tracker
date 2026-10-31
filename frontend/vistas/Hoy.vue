@@ -49,6 +49,8 @@
                     </div>
                 </div>
 
+                <p v-if="avisoRiesgo" class="hoy-riesgo">{{ avisoRiesgo }}</p>
+
                 <ul class="hoy-lista">
                     <li v-for="fila in programados" :key="fila.habitoId">
                         <button :class="['hoy-item', { hecho: estaHecho(fila) }]" @click="alternar(fila)">
@@ -123,6 +125,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import api, { mensajeError } from '../servicios/api.js';
 import { sesion } from '../servicios/sesion.js';
 import { hoy, sumarDias } from '../servicios/fechas.js';
+import { rachasEnRiesgo, textoRiesgo } from '../servicios/rachas.js';
 import { fechaLarga as fechaDelDia, nombreDia, mover, tiraSemana, MAX_DIAS_ATRAS } from '../servicios/dia.js';
 
 const datos = ref(null);
@@ -166,6 +169,9 @@ const pausados = computed(() => (datos.value ? datos.value.filas.filter(estaPaus
 const resto = computed(() =>
     datos.value ? datos.value.filas.filter((f) => !programados.value.includes(f) && !estaPausado(f)) : []
 );
+
+// Solo hoy tiene sentido: los días pasados ya no se pueden "salvar" con una racha en juego
+const avisoRiesgo = computed(() => (esHoy.value && datos.value ? textoRiesgo(rachasEnRiesgo(datos.value.filas)) : ''));
 
 const hechos = computed(() => programados.value.filter(estaHecho).length);
 
