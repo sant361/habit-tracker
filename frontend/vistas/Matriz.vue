@@ -47,7 +47,7 @@
             <p v-if="!matriz.filas.length" class="estado">
                 Aún no tienes hábitos. Crea el primero en "Mis hábitos".
             </p>
-            <MatrizCuadricula v-else :matriz="matriz" @alternar="alternar" />
+            <MatrizCuadricula v-else :matriz="matriz" @alternar="alternar" @detalle="detalleId = $event" />
 
             <div class="leyenda">
                 <span><i class="celda celda-hecho"></i> Hecho</span>
@@ -57,6 +57,8 @@
                 <span><i class="celda celda-no-toca"></i> No tocaba</span>
             </div>
         </template>
+
+        <DetalleHabito v-if="filaDetalle" :fila="filaDetalle" :dias="matriz.dias.length" @cerrar="detalleId = null" />
     </section>
 </template>
 
@@ -68,6 +70,7 @@ import { hoy, sumarDias } from '../servicios/fechas.js';
 import SelectorPeriodo from '../componentes/SelectorPeriodo.vue';
 import FiltroCategorias from '../componentes/FiltroCategorias.vue';
 import MatrizCuadricula from '../componentes/MatrizCuadricula.vue';
+import DetalleHabito from '../componentes/DetalleHabito.vue';
 
 const periodo = ref(30);
 const categoria = ref('');
@@ -75,6 +78,9 @@ const categorias = ref([]);
 const matriz = ref(null);
 const cargando = ref(false);
 const error = ref('');
+const detalleId = ref(null); // hábito cuyo detalle se está viendo
+// Se busca en la matriz actual, así el detalle se actualiza solo al marcar o cambiar de periodo
+const filaDetalle = computed(() => (matriz.value && detalleId.value ? matriz.value.filas.find((f) => f.habitoId === detalleId.value) || null : null));
 const exportando = ref(false);
 const errorExportar = ref('');
 

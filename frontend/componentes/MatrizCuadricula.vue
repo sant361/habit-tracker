@@ -19,8 +19,10 @@
             <tbody>
                 <tr v-for="fila in matriz.filas" :key="fila.habitoId">
                     <th class="col-habito">
-                        <i class="punto" :style="{ background: fila.color }"></i>
-                        {{ fila.nombre }}
+                        <button class="nombre-habito-matriz" title="Ver detalle" @click="$emit('detalle', fila.habitoId)">
+                            <i class="punto" :style="{ background: fila.color }"></i>
+                            {{ fila.nombre }}
+                        </button>
                     </th>
                     <td v-for="celda in fila.celdas" :key="celda.fecha">
                         <button
@@ -65,7 +67,7 @@ defineProps({
     matriz: Object
 });
 
-defineEmits(['alternar']);
+defineEmits(['alternar', 'detalle']);
 
 const hoyISO = hoy();
 

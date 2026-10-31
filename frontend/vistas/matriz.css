@@ -343,3 +343,112 @@
     border-radius: 50%;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
 }
+
+/* Nombre del hábito como botón (abre su detalle) */
+.nombre-habito-matriz {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.nombre-habito-matriz:hover {
+    text-decoration: underline;
+}
+
+/* Detalle de un hábito */
+.detalle-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.detalle {
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    padding: 20px;
+    overflow-y: auto;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    box-shadow: var(--sombra);
+    outline: none;
+}
+
+.detalle-cabecera {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.detalle-cabecera h2 {
+    margin: 0 0 4px;
+    font-size: 1.2rem;
+}
+
+.detalle-cabecera small,
+.detalle-datos small,
+.detalle-notas small {
+    color: var(--texto-suave);
+}
+
+.detalle-datos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 16px 0 12px;
+}
+
+.detalle-datos div {
+    display: grid;
+    gap: 2px;
+    padding: 10px;
+    text-align: center;
+    background: var(--vacio);
+    border-radius: 10px;
+}
+
+.detalle-datos b {
+    font-family: var(--fuente-titulo);
+    font-size: 1.5rem;
+}
+
+.detalle-ultimo {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: var(--texto-suave);
+}
+
+.detalle h3 {
+    margin: 0 0 8px;
+    font-size: 0.95rem;
+}
+
+.detalle-notas {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+}
+
+.detalle-notas li {
+    display: grid;
+    gap: 2px;
+    padding: 8px 10px;
+    background: var(--vacio);
+    border-radius: 10px;
+}
