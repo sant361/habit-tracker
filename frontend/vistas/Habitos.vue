@@ -24,7 +24,9 @@
                 :key="h.id"
                 :habito="h"
                 @editar="abrirFormulario"
-                @archivar="archivar" />
+                @archivar="archivar"
+                @pausar="(hasta) => pausar(h, hasta)"
+                @reanudar="reanudar" />
         </div>
 
         <p v-if="!habitos.length && !error && !mostrarFormulario" class="estado">
@@ -47,7 +49,7 @@ const habitoEditando = ref(null);
 
 async function cargar() {
     try {
-        habitos.value = (await api.get('/habitos')).data;
+        habitos.value = (await api.get('/habitos', { params: { hoy: hoy() } })).data;
     } catch (err) {
         error.value = mensajeError(err, 'No se pudieron cargar los hábitos.');
     }
@@ -81,6 +83,26 @@ async function archivar(habito) {
         await cargar();
     } catch (err) {
         error.value = mensajeError(err, 'No se pudo archivar el hábito.');
+    }
+}
+
+async function pausar(habito, hasta) {
+    error.value = '';
+    try {
+        await api.post(`/habitos/${habito.id}/pausar`, { desde: hoy(), hasta });
+        await cargar();
+    } catch (err) {
+        error.value = mensajeError(err, 'No se pudo pausar el hábito.');
+    }
+}
+
+async function reanudar(habito) {
+    error.value = '';
+    try {
+        await api.post(`/habitos/${habito.id}/reanudar`, { fecha: hoy() });
+        await cargar();
+    } catch (err) {
+        error.value = mensajeError(err, 'No se pudo reanudar el hábito.');
     }
 }
 

@@ -29,3 +29,17 @@ test('los días que no tocaba no cuentan ni rompen la racha', () => {
 test('sin ningún registro la racha es cero', () => {
     assert.deepEqual(calcularRachas('2026-10-01', TODOS, new Set(), '2026-10-09'), { actual: 0, mejor: 0 });
 });
+
+test('los días en pausa no rompen la racha ni suman', () => {
+    // 1-3 hechos, 4-6 en pausa sin marcar, 7-8 hechos: la racha sigue en 5 en vez de reiniciarse
+    const hechos = new Set(['2026-10-01', '2026-10-02', '2026-10-03', '2026-10-07', '2026-10-08']);
+    const enPausa = (f) => f >= '2026-10-04' && f <= '2026-10-06';
+    assert.deepEqual(calcularRachas('2026-10-01', TODOS, hechos, '2026-10-08', enPausa), { actual: 5, mejor: 5 });
+    // sin la pausa, los 3 días sin marcar la reinician
+    assert.deepEqual(calcularRachas('2026-10-01', TODOS, hechos, '2026-10-08'), { actual: 2, mejor: 3 });
+});
+
+test('un día en pausa que igual se cumplió sí cuenta', () => {
+    const hechos = new Set(['2026-10-01', '2026-10-02', '2026-10-03']);
+    assert.deepEqual(calcularRachas('2026-10-01', TODOS, hechos, '2026-10-03', () => true), { actual: 3, mejor: 3 });
+});

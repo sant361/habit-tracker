@@ -17,3 +17,6 @@ export function etiquetaDia(iso) {
 }
 
 export const NOMBRES_DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+// "12 oct": fecha corta para mostrar en pantalla
+export const fechaCorta = (iso) => new Date(iso + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });

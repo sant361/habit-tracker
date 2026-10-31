@@ -1,12 +1,15 @@
 import db from '../db.js';
 import { rangoDias, diaSemana } from '../utils/fechas.js';
 import { calcularRachas } from './racha.js';
+import { pausasPorHabito } from './pausas.js';
+import { crearEnPausa } from '../utils/pausas.js';
 
 const redondear = (n) => Math.round(n * 100) / 100;
 
 /**
  * Matriz hábitos x días.
- * Estados de celda: hecho | fallado | pendiente (hoy sin marcar) | no-toca | futuro
+ * Estados de celda: hecho | fallado | pendiente (hoy sin marcar) | pausado | no-toca | futuro
+ * Un día en pausa (solo si el hábito tocaba ese día) no cuenta para el porcentaje ni rompe la racha.
  * Porcentajes ponderados por el peso (1-5) de cada hábito.
  * Si se indica una categoría, solo se incluyen los hábitos de esa categoría
  * (y todos los totales se calculan solo con ellos).
@@ -24,6 +27,8 @@ export async function construirMatriz(usuarioId, desde, hasta, hoy, categoria = 
         [usuarioId]
     );
 
+    const pausas = await pausasPorHabito(usuarioId);
+
     const hechosPorHabito = new Map();
     const notas = new Map();
     for (const r of registros) {
@@ -40,6 +45,7 @@ export async function construirMatriz(usuarioId, desde, hasta, hoy, categoria = 
     const filas = habitos.map((h) => {
         const programados = new Set(JSON.parse(h.dias));
         const hechos = hechosPorHabito.get(h.id) || new Set();
+        const enPausa = crearEnPausa(pausas.get(h.id) || []);
         let ok = 0;
         let total = 0;
 
@@ -51,6 +57,7 @@ export async function construirMatriz(usuarioId, desde, hasta, hoy, categoria = 
             if (fecha > hoy) estado = 'futuro';
             else if (hecho) estado = 'hecho';
             else if (!programado) estado = 'no-toca';
+            else if (enPausa(fecha)) estado = 'pausado';
             else if (fecha === hoy) estado = 'pendiente';
             else estado = 'fallado';
 
@@ -69,7 +76,7 @@ export async function construirMatriz(usuarioId, desde, hasta, hoy, categoria = 
         globalOk += ok;
         globalTotal += total;
 
-        const rachas = calcularRachas(h.creado_en, programados, hechos, hoy);
+        const rachas = calcularRachas(h.creado_en, programados, hechos, hoy, enPausa);
         return {
             habitoId: h.id,
             nombre: h.nombre,

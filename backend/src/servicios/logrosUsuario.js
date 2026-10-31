@@ -1,5 +1,7 @@
 import db from '../db.js';
 import { calcularLogros } from './logros.js';
+import { pausasPorHabito } from './pausas.js';
+import { crearEnPausa } from '../utils/pausas.js';
 
 /** Lee el historial completo de una persona y devuelve sus logros con el avance. */
 export async function logrosDeUsuario(usuarioId, hoy) {
@@ -12,8 +14,12 @@ export async function logrosDeUsuario(usuarioId, hoy) {
         [usuarioId]
     );
 
+    const pausas = await pausasPorHabito(usuarioId);
     const porHabito = new Map(
-        habitos.map((h) => [h.id, { creadoEn: h.creado_en, dias: new Set(JSON.parse(h.dias)), hechos: new Set() }])
+        habitos.map((h) => [
+            h.id,
+            { creadoEn: h.creado_en, dias: new Set(JSON.parse(h.dias)), hechos: new Set(), enPausa: crearEnPausa(pausas.get(h.id) || []) }
+        ])
     );
     for (const r of registros) porHabito.get(r.habito_id).hechos.add(r.fecha);
 

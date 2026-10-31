@@ -53,6 +53,7 @@
                 <span><i class="celda celda-hecho"></i> Hecho</span>
                 <span><i class="celda celda-fallado"></i> Fallado</span>
                 <span><i class="celda celda-pendiente"></i> Hoy pendiente</span>
+                <span><i class="celda celda-pausado"></i> En pausa</span>
                 <span><i class="celda celda-no-toca"></i> No tocaba</span>
             </div>
         </template>

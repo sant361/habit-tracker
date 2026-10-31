@@ -47,3 +47,10 @@ test('evita que Excel interprete una nota como fórmula', () => {
     ]));
     assert.ok(csv.includes(";'=1+1\r\n"));
 });
+
+test('los días en pausa aparecen como pausado', () => {
+    const csv = matrizACsv(matriz([
+        { nombre: 'Correr', categoria: null, peso: 2, celdas: [celda('hecho'), celda('pausado'), celda('pausado'), celda('futuro')] }
+    ]));
+    assert.ok(csv.includes('2026-10-02;Correr;;2;pausado;\r\n'));
+});

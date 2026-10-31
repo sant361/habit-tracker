@@ -228,6 +228,12 @@
     background: var(--vacio);
 }
 
+/* En pausa: rayado suave, para distinguirlo de un día que no tocaba */
+.celda-pausado {
+    background: repeating-linear-gradient(135deg, var(--vacio) 0 3px, transparent 3px 6px);
+    border: 1px solid var(--borde);
+}
+
 .celda-futuro {
     background: transparent;
     border: 1px solid var(--borde);

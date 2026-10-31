@@ -73,6 +73,7 @@ const textoEstado = {
     hecho: 'Hecho',
     fallado: 'Fallado',
     pendiente: 'Pendiente',
+    pausado: 'En pausa',
     'no-toca': 'No tocaba',
     futuro: 'Futuro'
 };

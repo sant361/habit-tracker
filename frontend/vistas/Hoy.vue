@@ -82,6 +82,16 @@
                     </li>
                 </ul>
             </details>
+
+            <details v-if="pausados.length" class="hoy-resto">
+                <summary>En pausa ({{ pausados.length }})</summary>
+                <ul>
+                    <li v-for="fila in pausados" :key="fila.habitoId">
+                        <i class="punto" :style="{ background: fila.color }"></i>
+                        {{ fila.nombre }}
+                    </li>
+                </ul>
+            </details>
         </template>
     </section>
 </template>
@@ -115,13 +125,17 @@ const fechaLarga = new Date().toLocaleDateString('es-CO', {
 const estaHecho = (fila) => fila.celdas[0].estado === 'hecho';
 const notaDe = (fila) => fila.celdas[0].nota;
 
-// Los que tocan hoy, más cualquiera que ya se marcó aunque no tocara
+const estaPausado = (fila) => fila.celdas[0].estado === 'pausado';
+
+// Los que tocan hoy y no están en pausa, más cualquiera que ya se marcó aunque no tocara
 const programados = computed(() =>
-    datos.value ? datos.value.filas.filter((f) => f.celdas[0].programado || estaHecho(f)) : []
+    datos.value ? datos.value.filas.filter((f) => (f.celdas[0].programado && !estaPausado(f)) || estaHecho(f)) : []
 );
 
+const pausados = computed(() => (datos.value ? datos.value.filas.filter(estaPausado) : []));
+
 const resto = computed(() =>
-    datos.value ? datos.value.filas.filter((f) => !programados.value.includes(f)) : []
+    datos.value ? datos.value.filas.filter((f) => !programados.value.includes(f) && !estaPausado(f)) : []
 );
 
 const hechos = computed(() => programados.value.filter(estaHecho).length);

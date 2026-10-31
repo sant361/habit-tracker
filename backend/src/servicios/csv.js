@@ -3,7 +3,8 @@ const SEPARADOR = ';'; // Excel en español usa punto y coma como separador de l
 const TEXTO_ESTADO = {
     hecho: 'hecho',
     fallado: 'fallado',
-    pendiente: 'pendiente'
+    pendiente: 'pendiente',
+    pausado: 'pausado'
 };
 
 // Escapa un campo: comillas dobles duplicadas y entre comillas si lleva separador, comillas o saltos.
@@ -16,7 +17,7 @@ function campo(valor) {
 
 /**
  * Convierte la matriz en un CSV "largo": una fila por hábito y día.
- * Solo incluye los días con algo que informar (hecho, fallado o pendiente);
+ * Solo incluye los días con algo que informar (hecho, fallado, pendiente o pausado);
  * los días que no tocaba o que aún no llegan no generan fila.
  */
 export function matrizACsv(matriz) {

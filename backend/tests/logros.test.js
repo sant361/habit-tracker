@@ -63,3 +63,16 @@ test('los cumplimientos en fechas futuras no cuentan', () => {
     const e = estado(calcularLogros([habito('2026-10-01', ['2026-10-20'])], '2026-10-10'));
     assert.equal(e.total_1, false);
 });
+
+test('un día en pausa no estorba el día perfecto ni la racha', () => {
+    const dias = rangoDias('2026-10-01', '2026-10-07');
+    const pausado = { creadoEn: '2026-10-01', dias: TODOS, hechos: new Set(['2026-10-01']), enPausa: (f) => f > '2026-10-01' };
+    const activo = habito('2026-10-01', dias);
+    const logros = calcularLogros([pausado, activo], '2026-10-07');
+    // el hábito pausado solo se cumplió el 1; del 2 al 7 no cuenta, así que "activo" solo tiene que cumplirse con otro
+    assert.equal(logros.find((l) => l.clave === 'racha_7').obtenido, true);
+    assert.equal(logros.find((l) => l.clave === 'dia_perfecto').obtenido, true);
+    // sin la pausa, el hábito se fallaría del 2 al 7 y no habría racha de 7 en él
+    const sinPausa = calcularLogros([{ ...pausado, enPausa: undefined }, habito('2026-10-01', dias)], '2026-10-07');
+    assert.equal(sinPausa.find((l) => l.clave === 'semana_perfecta').obtenido, false);
+});

@@ -41,6 +41,12 @@ Si defines la variable `DATABASE_URL`, la app usa PostgreSQL y los datos se cons
 Para cargar el usuario de ejemplo en esa base: `cd backend`, define `DATABASE_URL` en tu `.env` y corre `npm run seed`.
 Sin `DATABASE_URL` todo sigue funcionando con SQLite, como en desarrollo.
 
+## Pausar un hábito
+
+En *Mis hábitos*, el botón **Pausar** (con fecha final opcional) deja el hábito en pausa: durante esos días
+no cuenta para el porcentaje, no rompe la racha y se ve rayado en la matriz. **Reanudar** la termina a partir de hoy.
+Un día en pausa que igual se cumple sí cuenta. Cada hábito puede tener varias pausas, pero no dos que se crucen.
+
 ## Recuperar la clave
 
 La app no envía correos, así que la recuperación usa un **código de recuperación** (formato `XXXX-XXXX-XXXX`):

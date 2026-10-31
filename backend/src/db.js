@@ -53,6 +53,13 @@ async function abrirPostgres() {
             nota        TEXT,
             UNIQUE (habito_id, fecha)
         );
+
+        CREATE TABLE IF NOT EXISTS pausas (
+            id          SERIAL PRIMARY KEY,
+            habito_id   INTEGER NOT NULL REFERENCES habitos(id) ON DELETE CASCADE,
+            desde       TEXT NOT NULL,
+            hasta       TEXT
+        );
     `);
 
     return {
@@ -98,6 +105,13 @@ async function abrirSqlite() {
             fecha       TEXT NOT NULL,
             nota        TEXT,
             UNIQUE (habito_id, fecha)
+        );
+
+        CREATE TABLE IF NOT EXISTS pausas (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            habito_id   INTEGER NOT NULL REFERENCES habitos(id) ON DELETE CASCADE,
+            desde       TEXT NOT NULL,
+            hasta       TEXT
         );
     `);
 

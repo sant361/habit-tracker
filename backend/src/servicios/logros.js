@@ -21,7 +21,7 @@ export const CATALOGO = [
 
 /**
  * Calcula el avance y el estado de cada logro con todo el historial.
- * habitos: [{ creadoEn: 'YYYY-MM-DD', dias: Set<number>, hechos: Set<'YYYY-MM-DD'> }]
+ * habitos: [{ creadoEn: 'YYYY-MM-DD', dias: Set<number>, hechos: Set<'YYYY-MM-DD'>, enPausa?: (fecha) => boolean }]
  * Un "día perfecto" necesita al menos 2 hábitos programados ese día y todos cumplidos;
  * los días con menos de 2 hábitos y el día de hoy aún incompleto no rompen la serie.
  */
@@ -31,7 +31,7 @@ export function calcularLogros(habitos, hoy) {
     for (const h of habitos) {
         const hechos = new Set([...h.hechos].filter((f) => f <= hoy));
         total += hechos.size;
-        mejorRacha = Math.max(mejorRacha, calcularRachas(h.creadoEn, h.dias, hechos, hoy).mejor);
+        mejorRacha = Math.max(mejorRacha, calcularRachas(h.creadoEn, h.dias, hechos, hoy, h.enPausa).mejor);
     }
 
     let diasPerfectos = 0;
@@ -41,7 +41,10 @@ export function calcularLogros(habitos, hoy) {
         const inicio = habitos.map((h) => h.creadoEn).sort()[0];
         for (let fecha = inicio; fecha <= hoy; fecha = sumarDias(fecha, 1)) {
             const dia = diaSemana(fecha);
-            const programados = habitos.filter((h) => fecha >= h.creadoEn && h.dias.has(dia));
+            // Un hábito en pausa no cuenta ese día, salvo que igual se haya cumplido
+            const programados = habitos.filter(
+                (h) => fecha >= h.creadoEn && h.dias.has(dia) && !(h.enPausa && h.enPausa(fecha) && !h.hechos.has(fecha))
+            );
             if (programados.length < 2) continue;
             if (programados.every((h) => h.hechos.has(fecha))) {
                 diasPerfectos++;
