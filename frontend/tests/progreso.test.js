@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { agruparSemanas, ordenarPorCumplimiento, clasificarCuadrantes } from '../servicios/progreso.js';
+import { agruparSemanas, ordenarPorCumplimiento, clasificarCuadrantes, compararPeriodos } from '../servicios/progreso.js';
 
 const fila = (habitoId, nombre, peso, tasa, celdas = []) => ({ habitoId, nombre, peso, tasa, celdas });
 
@@ -46,4 +46,61 @@ test('los umbrales son inclusivos: 70 % y peso 4 ya cuentan como alto', () => {
 test('dentro de un cuadrante va primero el de más impacto y luego el menos constante', () => {
     const q = clasificarCuadrantes([fila(1, 'a', 4, 0.5), fila(2, 'b', 5, 0.6), fila(3, 'c', 5, 0.2)]);
     assert.deepEqual(q.reforzar.map((f) => f.nombre), ['c', 'b', 'a']);
+});
+
+// ---- compararPeriodos ----
+// Arma una fila con un estado por día; 'x' = hecho, 'o' = fallado, '-' = no toca
+function filaDe(habitoId, nombre, peso, patron) {
+    const celdas = [...patron].map((c) => ({
+        programado: c !== '-',
+        estado: c === 'x' ? 'hecho' : c === 'o' ? 'fallado' : 'no-toca'
+    }));
+    return { habitoId, nombre, color: '#000', peso, tasa: null, celdas };
+}
+const matrizDe = (...filas) => ({ dias: Array.from({ length: filas[0].celdas.length }, (_, i) => `d${i}`), filas });
+
+test('compararPeriodos: compara los últimos n días con los n anteriores', () => {
+    // 4 días anteriores: 1 de 4 (25 %); 4 días actuales: 3 de 4 (75 %)
+    const m = matrizDe(filaDe(1, 'a', 1, 'xooo' + 'xxxo'));
+    const r = compararPeriodos(m, 4);
+    assert.equal(r.anterior, 0.25);
+    assert.equal(r.actual, 0.75);
+    assert.equal(r.cambio, 50);
+});
+
+test('compararPeriodos: pondera por el peso del hábito', () => {
+    // actual: hábito de peso 3 cumplido y hábito de peso 1 fallado -> 3 de 4
+    const m = matrizDe(filaDe(1, 'a', 3, 'xx'), filaDe(2, 'b', 1, 'xo'));
+    const r = compararPeriodos(m, 1);
+    assert.equal(r.actual, 0.75);
+    assert.equal(r.anterior, 1);
+    assert.equal(r.cambio, -25);
+});
+
+test('compararPeriodos: sin suficientes días no hay periodo anterior', () => {
+    const r = compararPeriodos(matrizDe(filaDe(1, 'a', 1, 'xxx')), 3);
+    assert.equal(r.actual, 1);
+    assert.equal(r.anterior, null);
+    assert.equal(r.cambio, null);
+    assert.deepEqual(r.porHabito, []);
+});
+
+test('compararPeriodos: ordena los hábitos del que más mejoró al que más bajó y omite los sin datos', () => {
+    const m = matrizDe(
+        filaDe(1, 'mejora', 1, 'oooo' + 'xxxx'),
+        filaDe(2, 'baja', 1, 'xxxx' + 'oooo'),
+        filaDe(3, 'igual', 1, 'xoxo' + 'xoxo'),
+        filaDe(4, 'nuevo', 1, '----' + 'xxxx')
+    );
+    const { porHabito } = compararPeriodos(m, 4);
+    assert.deepEqual(porHabito.map((h) => h.nombre), ['mejora', 'igual', 'baja']);
+    assert.equal(porHabito[0].cambio, 100);
+    assert.equal(porHabito[2].cambio, -100);
+});
+
+test('compararPeriodos: los días pendientes y futuros no cuentan', () => {
+    const fila = filaDe(1, 'a', 1, 'xx');
+    fila.celdas[1] = { programado: true, estado: 'pendiente' };
+    const r = compararPeriodos(matrizDe(fila), 1);
+    assert.equal(r.actual, null);
 });

@@ -34,6 +34,11 @@
                 </div>
 
                 <div class="tarjeta-grafico">
+                    <h2>Comparar periodos</h2>
+                    <ComparativaPeriodos :matriz="matriz" />
+                </div>
+
+                <div class="tarjeta-grafico">
                     <h2>Cumplimiento por semana</h2>
                     <GraficoSemanal :semanas="semanas" />
                 </div>
@@ -61,6 +66,7 @@ import { agruparSemanas, ordenarPorCumplimiento } from '../servicios/progreso.js
 import GraficoSemanal from '../componentes/GraficoSemanal.vue';
 import BarrasHabitos from '../componentes/BarrasHabitos.vue';
 import CuadranteImpacto from '../componentes/CuadranteImpacto.vue';
+import ComparativaPeriodos from '../componentes/ComparativaPeriodos.vue';
 
 const SEMANAS = 12;
 

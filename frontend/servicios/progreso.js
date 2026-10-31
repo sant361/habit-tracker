@@ -68,3 +68,56 @@ export function clasificarCuadrantes(filas) {
     }
     return cuadrantes;
 }
+
+// ---- Comparar periodos ----
+// Cumplimiento ponderado de los días [desde, hasta) de la matriz, o null si no hubo nada que juzgar.
+function acumular(filas, desde, hasta) {
+    let ok = 0;
+    let total = 0;
+    for (const fila of filas) {
+        for (let i = Math.max(desde, 0); i < hasta; i++) {
+            const celda = fila.celdas[i];
+            if (!celda.programado) continue;
+            if (celda.estado === 'hecho') {
+                ok += fila.peso;
+                total += fila.peso;
+            } else if (celda.estado === 'fallado') {
+                total += fila.peso;
+            }
+        }
+    }
+    return total ? ok / total : null;
+}
+
+const aPuntos = (actual, anterior) => (actual === null || anterior === null ? null : Math.round((actual - anterior) * 100));
+
+/**
+ * Compara los últimos "n" días de la matriz con los "n" anteriores.
+ * Devuelve { actual, anterior, cambio, porHabito }:
+ *  - actual y anterior van de 0 a 1 (o null si no hay datos);
+ *  - cambio es la diferencia en puntos porcentuales (null si falta alguno);
+ *  - porHabito lista los hábitos con datos en ambos periodos, del que más mejoró al que más bajó.
+ */
+export function compararPeriodos(matriz, n) {
+    const total = matriz.dias.length;
+    const finActual = total;
+    const iniActual = total - n;
+    const iniAnterior = total - 2 * n;
+    const hayAnterior = iniAnterior >= 0;
+
+    const actual = acumular(matriz.filas, iniActual, finActual);
+    const anterior = hayAnterior ? acumular(matriz.filas, iniAnterior, iniActual) : null;
+
+    const porHabito = [];
+    if (hayAnterior) {
+        for (const fila of matriz.filas) {
+            const a = acumular([fila], iniActual, finActual);
+            const b = acumular([fila], iniAnterior, iniActual);
+            if (a === null || b === null) continue;
+            porHabito.push({ habitoId: fila.habitoId, nombre: fila.nombre, color: fila.color, actual: a, anterior: b, cambio: aPuntos(a, b) });
+        }
+        porHabito.sort((x, y) => y.cambio - x.cambio);
+    }
+
+    return { actual, anterior, cambio: aPuntos(actual, anterior), porHabito };
+}

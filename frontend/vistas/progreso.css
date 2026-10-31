@@ -219,3 +219,93 @@
     font-size: 13px;
     color: var(--texto-suave);
 }
+
+/* Comparar periodos */
+.comp-selector {
+    margin: 0 0 16px;
+}
+
+.comp-cifras {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 28px;
+}
+
+.comp-dato {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.comp-dato small {
+    font-size: 12px;
+    color: var(--texto-suave);
+}
+
+.comp-dato b {
+    font-family: var(--fuente-titulo);
+    font-size: 1.9rem;
+    font-weight: 600;
+}
+
+.comp-cambio {
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 999px;
+}
+
+.comp-cambio.sube {
+    color: var(--acento-texto);
+    background: var(--acento);
+}
+
+.comp-cambio.baja {
+    color: var(--peligro);
+    background: var(--fallo);
+}
+
+.comp-cambio.igual {
+    color: var(--texto-suave);
+    background: var(--vacio);
+}
+
+.comp-habitos {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+}
+
+.comp-habitos li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+}
+
+.comp-habitos em {
+    margin-left: auto;
+    font-style: normal;
+    font-weight: 600;
+}
+
+.comp-etiqueta {
+    min-width: 84px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.comp-etiqueta.sube {
+    color: var(--acento);
+}
+
+.comp-etiqueta.baja {
+    color: var(--peligro);
+}
