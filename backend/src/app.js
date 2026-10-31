@@ -4,10 +4,12 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 import cors from 'cors';
 import { requerirAuth } from './middleware/auth.js';
+import { requerirAdmin } from './middleware/admin.js';
 import rutasAuth from './rutas/auth.js';
 import rutasHabitos from './rutas/habitos.js';
 import rutasRegistros from './rutas/registros.js';
 import rutasEstadisticas from './rutas/estadisticas.js';
+import rutasAdmin from './rutas/admin.js';
 
 const app = express();
 
@@ -20,6 +22,7 @@ app.use('/api/auth', rutasAuth);
 app.use('/api/habitos', requerirAuth, rutasHabitos);
 app.use('/api/registros', requerirAuth, rutasRegistros);
 app.use('/api/estadisticas', requerirAuth, rutasEstadisticas);
+app.use('/api/admin', requerirAuth, requerirAdmin, rutasAdmin);
 
 // En producción el mismo servidor entrega la página ya compilada (frontend/dist),
 // así que todo vive bajo una sola dirección y no hace falta configurar CORS.

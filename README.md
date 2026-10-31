@@ -41,6 +41,20 @@ Si defines la variable `DATABASE_URL`, la app usa PostgreSQL y los datos se cons
 Para cargar el usuario de ejemplo en esa base: `cd backend`, define `DATABASE_URL` en tu `.env` y corre `npm run seed`.
 Sin `DATABASE_URL` todo sigue funcionando con SQLite, como en desarrollo.
 
+## Administrador
+
+Define la variable `ADMIN_EMAIL` con el correo de **una cuenta que ya hayas registrado tú** (en Render, en *Environment*;
+en local, en `backend/.env`). Se pueden poner varios separados por comas. Esa cuenta puede usar `/api/admin`:
+
+- `GET /api/admin/resumen`: cuántas cuentas, hábitos y registros hay y cuántas cuentas estuvieron activas en 7 días.
+- `GET /api/admin/usuarios`: cada cuenta con cuántos hábitos y registros tiene y su última actividad.
+- `DELETE /api/admin/usuarios/:id`: elimina una cuenta y sus datos.
+- `POST /api/admin/usuarios/:id/clave`: pone una clave temporal (se muestra una sola vez) a quien olvidó la suya.
+
+El panel nunca muestra los hábitos ni las notas de nadie, y no puede borrar ni cambiar la clave de otra cuenta de administrador.
+Sin `ADMIN_EMAIL` no existen administradores. No pongas un correo que nadie haya registrado todavía: cualquiera podría
+registrarlo y quedar como admin.
+
 ## Pausar un hábito
 
 En *Mis hábitos*, el botón **Pausar** (con fecha final opcional) deja el hábito en pausa: durante esos días

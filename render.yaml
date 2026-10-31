@@ -16,3 +16,6 @@ services:
       # Pega aquí la dirección de tu base de datos de Neon (ver README)
       - key: DATABASE_URL
         sync: false
+      # Tu correo de administrador (debe ser una cuenta ya registrada por ti)
+      - key: ADMIN_EMAIL
+        sync: false

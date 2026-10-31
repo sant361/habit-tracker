@@ -6,13 +6,14 @@ import { SECRETO, requerirAuth } from '../middleware/auth.js';
 import { asincrono } from '../utils/asincrono.js';
 import { crearLimitador } from '../utils/limitador.js';
 import { generarCodigo, normalizarCodigo } from '../servicios/recuperacion.js';
+import { esCorreoAdmin } from '../utils/admin.js';
 import { construirRespaldo } from '../servicios/respaldo.js';
 import { importarRespaldo } from '../servicios/importacion.js';
 
 const router = Router();
 
 const firmar = (usuario) => jwt.sign({ id: usuario.id }, SECRETO, { expiresIn: '7d' });
-const publico = (u) => ({ id: u.id, nombre: u.nombre, email: u.email });
+const publico = (u) => ({ id: u.id, nombre: u.nombre, email: u.email, esAdmin: esCorreoAdmin(u.email) });
 
 router.post('/registro', asincrono(async (req, res) => {
     const { nombre, email, clave } = req.body || {};
@@ -38,6 +39,12 @@ router.post('/login', asincrono(async (req, res) => {
         return res.status(401).json({ error: 'Email o clave incorrectos' });
     }
     res.json({ token: firmar(usuario), usuario: publico(usuario) });
+}));
+
+// Datos de la cuenta con la sesión iniciada (incluye si es administrador)
+router.get('/yo', requerirAuth, asincrono(async (req, res) => {
+    const usuario = await db.uno('SELECT id, nombre, email FROM usuarios WHERE id = ?', [req.usuarioId]);
+    res.json({ usuario: publico(usuario) });
 }));
 
 const MAX_NOMBRE = 60;
