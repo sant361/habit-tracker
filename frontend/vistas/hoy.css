@@ -246,3 +246,61 @@
     opacity: 0.35;
     cursor: default;
 }
+
+/* Tira de la semana */
+.hoy-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    max-width: 420px;
+    margin-bottom: 16px;
+}
+
+.semana-dia {
+    display: grid;
+    gap: 2px;
+    padding: 8px 0;
+    font: inherit;
+    text-align: center;
+    color: var(--texto);
+    background: var(--vacio);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.semana-dia small {
+    font-size: 11px;
+    color: inherit;
+    opacity: 0.75;
+}
+
+.semana-dia.es-hoy b {
+    text-decoration: underline;
+}
+
+.semana-dia.elegido {
+    border-color: var(--texto);
+}
+
+.semana-n-0 {
+    background: var(--fallo);
+}
+
+.semana-n-1 {
+    background: color-mix(in srgb, var(--acento) 30%, var(--vacio));
+}
+
+.semana-n-2 {
+    background: color-mix(in srgb, var(--acento) 55%, var(--vacio));
+}
+
+.semana-n-3 {
+    background: color-mix(in srgb, var(--acento) 80%, var(--vacio));
+    color: var(--acento-texto);
+}
+
+.semana-n-4 {
+    background: var(--acento);
+    color: var(--acento-texto);
+}

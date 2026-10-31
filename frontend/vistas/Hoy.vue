@@ -17,6 +17,18 @@
             <button v-if="!esHoy" class="boton secundario" @click="desplazamiento = 0">Volver a hoy</button>
         </div>
 
+        <div v-if="semana.length && datos && datos.filas.length" class="hoy-semana">
+            <button
+                v-for="d in semana"
+                :key="d.fecha"
+                :class="['semana-dia', 'semana-n-' + d.nivel, { elegido: d.fecha === fecha, 'es-hoy': d.atras === 0 }]"
+                :title="d.valor === null ? 'Sin hábitos que cumplir' : Math.round(d.valor * 100) + '%'"
+                @click="desplazamiento = -d.atras">
+                <small>{{ d.letra }}</small>
+                <b>{{ d.numero }}</b>
+            </button>
+        </div>
+
         <p v-if="error" class="estado">{{ error }}</p>
         <p v-else-if="cargando && !datos" class="estado">Cargando...</p>
 
@@ -111,11 +123,12 @@ import { ref, computed, watch, onMounted } from 'vue';
 import api, { mensajeError } from '../servicios/api.js';
 import { sesion } from '../servicios/sesion.js';
 import { hoy, sumarDias } from '../servicios/fechas.js';
-import { fechaLarga as fechaDelDia, nombreDia, mover, MAX_DIAS_ATRAS } from '../servicios/dia.js';
+import { fechaLarga as fechaDelDia, nombreDia, mover, tiraSemana, MAX_DIAS_ATRAS } from '../servicios/dia.js';
 
 const datos = ref(null);
 const cargando = ref(false);
 const error = ref('');
+const semana = ref([]); // los últimos 7 días, para la tira
 const desplazamiento = ref(0); // 0 = hoy, -1 = ayer...
 const hoyISO = ref(hoy());
 const fecha = ref(hoyISO.value); // el día que se está viendo
@@ -187,10 +200,23 @@ async function cargar() {
         if (turno !== ultimaCarga) return;
         fecha.value = dia;
         datos.value = respuesta.data;
+        await cargarSemana(turno);
     } catch (err) {
         if (turno === ultimaCarga) error.value = mensajeError(err, 'No se pudieron cargar los hábitos.');
     } finally {
         if (turno === ultimaCarga) cargando.value = false;
+    }
+}
+
+// La tira es un complemento: si falla, el día se sigue mostrando sin ella
+async function cargarSemana(turno) {
+    try {
+        const respuesta = await api.get('/estadisticas/matriz', {
+            params: { desde: sumarDias(hoyISO.value, -6), hasta: hoyISO.value, hoy: hoyISO.value }
+        });
+        if (turno === ultimaCarga) semana.value = tiraSemana(respuesta.data, hoyISO.value);
+    } catch {
+        if (turno === ultimaCarga) semana.value = [];
     }
 }
 
