@@ -326,6 +326,37 @@ footer p {
     border-radius: 10px;
 }
 
+.campo-clave {
+    position: relative;
+    display: flex;
+}
+
+.campo-clave input {
+    flex: 1;
+    min-width: 0;
+    padding-right: 84px;
+}
+
+.ver-clave {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    padding: 4px 8px;
+    font: inherit;
+    font-size: 12px;
+    color: var(--texto-suave);
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.ver-clave:hover {
+    color: var(--texto);
+    background: var(--vacio);
+}
+
 .campo input:focus,
 .campo select:focus {
     outline: 2px solid var(--acento);

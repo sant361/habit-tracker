@@ -36,11 +36,11 @@
                 <form class="form-perfil" @submit.prevent="guardarClave">
                     <label class="campo">
                         Clave actual
-                        <input v-model="claveActual" type="password" autocomplete="current-password" required>
+                        <CampoClave v-model="claveActual" autocomplete="current-password" required />
                     </label>
                     <label class="campo">
                         Clave nueva
-                        <input v-model="claveNueva" type="password" minlength="6" maxlength="72" autocomplete="new-password" required>
+                        <CampoClave v-model="claveNueva" :minlength="6" :maxlength="72" autocomplete="new-password" required />
                     </label>
                     <p v-if="mensajeClave.texto" :class="mensajeClave.ok ? 'ok-form' : 'error-form'">{{ mensajeClave.texto }}</p>
                     <button type="submit" class="boton" :disabled="guardando === 'clave'">Cambiar clave</button>
@@ -134,6 +134,7 @@ import api, { mensajeError } from '../servicios/api.js';
 import { sesion } from '../servicios/sesion.js';
 import { tema, cambiarTema, OPCIONES_TEMA } from '../servicios/tema.js';
 import { hoy } from '../servicios/fechas.js';
+import CampoClave from '../componentes/CampoClave.vue';
 import { MAX_BYTES, textoImportacion, leerRespaldo } from '../servicios/respaldo.js';
 
 const inicial = computed(() => (sesion.usuario ? sesion.usuario.nombre.charAt(0).toUpperCase() : '?'));

@@ -32,7 +32,7 @@
                 </label>
                 <label class="campo">
                     Clave
-                    <input v-model="clave" type="password" minlength="6" required>
+                    <CampoClave v-model="clave" :minlength="6" :maxlength="72" :autocomplete="modoRegistro ? 'new-password' : 'current-password'" required />
                 </label>
 
                 <p v-if="aviso" class="ok-form">{{ aviso }}</p>
@@ -41,7 +41,7 @@
                 <button type="submit" class="boton" :disabled="cargando">
                     {{ modoRegistro ? 'Crear cuenta' : 'Entrar' }}
                 </button>
-                <button type="button" class="boton secundario" @click="modoRegistro = !modoRegistro">
+                <button type="button" class="boton secundario" @click="cambiarModo">
                     {{ modoRegistro ? 'Ya tengo cuenta' : 'Crear una cuenta' }}
                 </button>
                 <button v-if="!modoRegistro" type="button" class="enlace-recuperar" @click="abrirRecuperar">
@@ -65,7 +65,7 @@
                 </label>
                 <label class="campo">
                     Clave nueva
-                    <input v-model="claveNueva" type="password" minlength="6" maxlength="72" autocomplete="new-password" required>
+                    <CampoClave v-model="claveNueva" :minlength="6" :maxlength="72" autocomplete="new-password" required />
                 </label>
 
                 <p v-if="error" class="error-form">{{ error }}</p>
@@ -81,6 +81,7 @@
 import { ref } from 'vue';
 import api, { mensajeError } from '../servicios/api.js';
 import { sesion } from '../servicios/sesion.js';
+import CampoClave from '../componentes/CampoClave.vue';
 
 const modoRegistro = ref(false);
 const nombre = ref('');
@@ -97,6 +98,13 @@ const aviso = ref('');
 
 // Cuadrícula decorativa (7 columnas x 5 filas) con niveles 0-3
 const decoracion = Array.from({ length: 35 }, (_, i) => (i * 7 + (i >> 2) * 3) % 4);
+
+// Al pasar de entrar a crear cuenta (y al revés) se quitan los mensajes del intento anterior
+function cambiarModo() {
+    modoRegistro.value = !modoRegistro.value;
+    error.value = '';
+    aviso.value = '';
+}
 
 function abrirRecuperar() {
     error.value = '';
