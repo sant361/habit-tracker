@@ -6,6 +6,7 @@ import { SECRETO, requerirAuth } from '../middleware/auth.js';
 import { asincrono } from '../utils/asincrono.js';
 import { crearLimitador } from '../utils/limitador.js';
 import { generarCodigo, normalizarCodigo } from '../servicios/recuperacion.js';
+import { validarRegistro, validarLogin, limpiarEmail, MAX_NOMBRE, MIN_CLAVE, MAX_CLAVE } from '../servicios/cuentas.js';
 import { esCorreoAdmin } from '../utils/admin.js';
 import { construirRespaldo } from '../servicios/respaldo.js';
 import { importarRespaldo } from '../servicios/importacion.js';
@@ -15,29 +16,39 @@ const router = Router();
 const firmar = (usuario) => jwt.sign({ id: usuario.id }, SECRETO, { expiresIn: '7d' });
 const publico = (u) => ({ id: u.id, nombre: u.nombre, email: u.email, esAdmin: esCorreoAdmin(u.email) });
 
+// Máximo de intentos de inicio de sesión por correo cada 15 minutos (frena adivinar claves).
+// Al entrar bien se reinicia la cuenta, así que usar la app normalmente nunca llega al límite.
+const limiteLogin = crearLimitador({ max: 10, ventanaMs: 15 * 60 * 1000 });
+
 router.post('/registro', asincrono(async (req, res) => {
-    const { nombre, email, clave } = req.body || {};
-    if (!nombre || !email || !clave || clave.length < 6) {
-        return res.status(400).json({ error: 'Nombre, email y clave (mínimo 6 caracteres) son obligatorios' });
-    }
-    const existe = await db.uno('SELECT id FROM usuarios WHERE email = ?', [email.toLowerCase()]);
+    const datos = validarRegistro(req.body);
+    if (datos.error) return res.status(400).json({ error: datos.error });
+
+    const existe = await db.uno('SELECT id FROM usuarios WHERE email = ?', [datos.email]);
     if (existe) return res.status(409).json({ error: 'Ese email ya está registrado' });
 
     const id = await db.insertar('INSERT INTO usuarios (nombre, email, clave_hash) VALUES (?, ?, ?)', [
-        nombre.trim(),
-        email.toLowerCase(),
-        bcrypt.hashSync(clave, 10)
+        datos.nombre,
+        datos.email,
+        bcrypt.hashSync(datos.clave, 10)
     ]);
-    const usuario = { id, nombre: nombre.trim(), email: email.toLowerCase() };
+    const usuario = { id, nombre: datos.nombre, email: datos.email };
     res.status(201).json({ token: firmar(usuario), usuario: publico(usuario) });
 }));
 
 router.post('/login', asincrono(async (req, res) => {
-    const { email, clave } = req.body || {};
-    const usuario = await db.uno('SELECT * FROM usuarios WHERE email = ?', [(email || '').toLowerCase()]);
-    if (!usuario || !bcrypt.compareSync(clave || '', usuario.clave_hash)) {
+    const datos = validarLogin(req.body);
+    if (datos.error) return res.status(400).json({ error: datos.error });
+
+    if (!limiteLogin.intentar(datos.email)) {
+        return res.status(429).json({ error: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo' });
+    }
+
+    const usuario = await db.uno('SELECT * FROM usuarios WHERE email = ?', [datos.email]);
+    if (!usuario || !bcrypt.compareSync(datos.clave, usuario.clave_hash)) {
         return res.status(401).json({ error: 'Email o clave incorrectos' });
     }
+    limiteLogin.reiniciar(datos.email);
     res.json({ token: firmar(usuario), usuario: publico(usuario) });
 }));
 
@@ -46,10 +57,6 @@ router.get('/yo', requerirAuth, asincrono(async (req, res) => {
     const usuario = await db.uno('SELECT id, nombre, email FROM usuarios WHERE id = ?', [req.usuarioId]);
     res.json({ usuario: publico(usuario) });
 }));
-
-const MAX_NOMBRE = 60;
-const MIN_CLAVE = 6;
-const MAX_CLAVE = 72; // bcrypt solo considera los primeros 72 caracteres
 
 // Máximo de intentos de recuperación por correo cada 15 minutos (frena adivinar códigos)
 const limiteRecuperar = crearLimitador({ max: 5, ventanaMs: 15 * 60 * 1000 });
@@ -135,7 +142,7 @@ router.post('/recuperar', asincrono(async (req, res) => {
         return res.status(400).json({ error: `La clave nueva debe tener entre ${MIN_CLAVE} y ${MAX_CLAVE} caracteres` });
     }
 
-    const correo = email.trim().toLowerCase();
+    const correo = limpiarEmail(email);
     if (!limiteRecuperar.intentar(correo)) {
         return res.status(429).json({ error: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo' });
     }
