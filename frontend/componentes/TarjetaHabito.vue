@@ -27,15 +27,27 @@
 
         <form v-if="pausando" class="form-pausa" @submit.prevent="confirmarPausa">
             <label class="campo">
-                Pausar hasta (opcional)
-                <input v-model="hasta" type="date" :min="hoyISO">
+                Desde
+                <input v-model="desde" type="date" :min="habito.creadoEn" :max="hoyISO" required>
             </label>
-            <small>Sin fecha, queda en pausa hasta que la reanudes. Mientras tanto no cuenta para tu porcentaje ni rompe la racha.</small>
+            <label class="campo">
+                Hasta (opcional)
+                <input v-model="hasta" type="date" :min="desde || habito.creadoEn">
+            </label>
+            <small>Sin fecha final, queda en pausa hasta que la reanudes. Si eliges días que ya pasaron, dejan de contar como fallados y no rompen la racha.</small>
+            <p v-if="errorPausa" class="error-form">{{ errorPausa }}</p>
             <div class="acciones-form">
                 <button type="submit" class="boton">Pausar</button>
                 <button type="button" class="boton secundario" @click="cancelarPausa">Cancelar</button>
             </div>
         </form>
+
+        <ul v-if="habito.pausasPasadas && habito.pausasPasadas.length" class="pausas-pasadas">
+            <li v-for="p in habito.pausasPasadas" :key="p.desde">
+                <span>Pausa: {{ textoPausaPasada(p) }}</span>
+                <button type="button" class="enlace-quitar" title="Quitar esta pausa: esos días vuelven a contar" @click="$emit('quitar-pausa', habito, p)">Quitar</button>
+            </li>
+        </ul>
 
         <div class="acciones-tarjeta">
             <button class="boton secundario" @click="$emit('editar', habito)">Editar</button>
@@ -52,27 +64,33 @@
 <script setup>
 import { ref } from 'vue';
 import { NOMBRES_DIAS, hoy } from '../servicios/fechas.js';
-import { textoPausa } from '../servicios/pausas.js';
+import { textoPausa, textoPausaPasada, errorDePausa } from '../servicios/pausas.js';
 
-defineProps({
+const props = defineProps({
     habito: Object,
     primero: Boolean, // ya está al principio de la lista
     ultimo: Boolean // ya está al final
 });
 
-const emit = defineEmits(['editar', 'archivar', 'pausar', 'reanudar', 'mover', 'duplicar']);
+const emit = defineEmits(['editar', 'archivar', 'pausar', 'reanudar', 'mover', 'duplicar', 'quitar-pausa']);
 
 const hoyISO = hoy();
 const pausando = ref(false);
+const desde = ref(hoyISO);
 const hasta = ref('');
+const errorPausa = ref('');
 
 function confirmarPausa() {
-    emit('pausar', hasta.value || null);
+    errorPausa.value = errorDePausa({ desde: desde.value, hasta: hasta.value }, hoyISO, props.habito.creadoEn);
+    if (errorPausa.value) return;
+    emit('pausar', { desde: desde.value, hasta: hasta.value || null });
     cancelarPausa();
 }
 
 function cancelarPausa() {
     pausando.value = false;
+    desde.value = hoyISO;
     hasta.value = '';
+    errorPausa.value = '';
 }
 </script>

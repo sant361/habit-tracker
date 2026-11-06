@@ -33,6 +33,7 @@
                 :ultimo="filtrando || i === visibles.length - 1"
                 @editar="abrirFormulario"
                 @duplicar="duplicar"
+                @quitar-pausa="quitarPausa"
                 @archivar="archivar"
                 @pausar="(hasta) => pausar(h, hasta)"
                 @reanudar="reanudar"
@@ -78,6 +79,7 @@ import { moverElemento } from '../servicios/orden.js';
 import { textoArchivado, textoRestaurado } from '../servicios/archivados.js';
 import { avisar } from '../servicios/avisos.js';
 import { datosDeCopia } from '../servicios/duplicar.js';
+import { esPausaPasada } from '../servicios/pausas.js';
 
 const habitos = ref([]);
 const error = ref('');
@@ -179,13 +181,25 @@ async function restaurar(habito) {
     }
 }
 
-async function pausar(habito, hasta) {
+async function pausar(habito, { desde, hasta }) {
     error.value = '';
     try {
-        await api.post(`/habitos/${habito.id}/pausar`, { desde: hoy(), hasta });
+        await api.post(`/habitos/${habito.id}/pausar`, { desde, hasta });
+        if (esPausaPasada({ hasta }, hoy())) avisar(`Pausa guardada: esos días ya no cuentan como fallados. Puedes quitarla desde la tarjeta.`);
         await cargar();
     } catch (err) {
         error.value = mensajeError(err, 'No se pudo pausar el hábito.');
+    }
+}
+
+// Quita una pausa que ya terminó (por ejemplo si se registró por error): esos días vuelven a contar
+async function quitarPausa(habito, pausa) {
+    error.value = '';
+    try {
+        await api.post(`/habitos/${habito.id}/reanudar`, { fecha: pausa.desde });
+        await cargar();
+    } catch (err) {
+        error.value = mensajeError(err, 'No se pudo quitar la pausa.');
     }
 }
 

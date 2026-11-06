@@ -20,3 +20,15 @@ export function pausaVigente(pausas, hoy) {
     const p = vigentes[0];
     return p ? { desde: p.desde, hasta: p.hasta || null, activa: p.desde <= hoy } : null;
 }
+
+/**
+ * Las últimas pausas que ya terminaron (de la más reciente a la más antigua), para poder
+ * verlas y quitarlas si se registraron por error. Devuelve hasta "max" como { desde, hasta }.
+ */
+export function pausasPasadas(pausas, hoy, max = 3) {
+    return pausas
+        .filter((p) => p.hasta && p.hasta < hoy)
+        .sort((a, b) => (a.desde < b.desde ? 1 : -1))
+        .slice(0, max)
+        .map((p) => ({ desde: p.desde, hasta: p.hasta }));
+}

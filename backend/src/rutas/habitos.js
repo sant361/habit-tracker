@@ -3,13 +3,13 @@ import db from '../db.js';
 import { esFecha, hoyLocal } from '../utils/fechas.js';
 import { asincrono } from '../utils/asincrono.js';
 import { pausasPorHabito, pausar, reanudar } from '../servicios/pausas.js';
-import { pausaVigente } from '../utils/pausas.js';
+import { pausaVigente, pausasPasadas } from '../utils/pausas.js';
 import { guardarOrden } from '../servicios/orden.js';
 import { listarArchivados, restaurar } from '../servicios/archivados.js';
 
 const router = Router();
 
-const aSalida = (h, pausa = null) => ({
+const aSalida = (h, pausa = null, pasadas = []) => ({
     id: h.id,
     nombre: h.nombre,
     categoria: h.categoria,
@@ -17,7 +17,8 @@ const aSalida = (h, pausa = null) => ({
     dias: JSON.parse(h.dias),
     peso: h.peso,
     creadoEn: h.creado_en,
-    pausa // { desde, hasta, activa } o null
+    pausa, // { desde, hasta, activa } o null
+    pausasPasadas: pasadas // las últimas pausas ya terminadas [{ desde, hasta }], para poder quitarlas
 });
 
 function validar(body) {
@@ -40,7 +41,7 @@ router.get('/', asincrono(async (req, res) => {
     const hoy = leerHoy(req);
     const filas = await db.todos('SELECT * FROM habitos WHERE usuario_id = ? AND archivado = 0 ORDER BY orden, id', [req.usuarioId]);
     const pausas = await pausasPorHabito(req.usuarioId);
-    res.json(filas.map((h) => aSalida(h, pausaVigente(pausas.get(h.id) || [], hoy))));
+    res.json(filas.map((h) => aSalida(h, pausaVigente(pausas.get(h.id) || [], hoy), pausasPasadas(pausas.get(h.id) || [], hoy))));
 }));
 
 router.post('/', asincrono(async (req, res) => {
@@ -102,7 +103,8 @@ router.put('/:id', asincrono(async (req, res) => {
     if (!info.cambios) return res.status(404).json({ error: 'Hábito no encontrado' });
 
     const pausas = await pausasPorHabito(req.usuarioId);
-    res.json(aSalida(await db.uno('SELECT * FROM habitos WHERE id = ?', [id]), pausaVigente(pausas.get(id) || [], leerHoy(req))));
+    const hoy = leerHoy(req);
+    res.json(aSalida(await db.uno('SELECT * FROM habitos WHERE id = ?', [id]), pausaVigente(pausas.get(id) || [], hoy), pausasPasadas(pausas.get(id) || [], hoy)));
 }));
 
 // "Eliminar" archiva el hábito para no perder el historial

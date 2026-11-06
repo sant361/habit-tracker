@@ -32,3 +32,28 @@ test('pausaVigente: en curso, próxima o ninguna', () => {
     assert.deepEqual(pausaVigente(pausas, '2026-10-22'), { desde: '2026-10-20', hasta: '2026-10-25', activa: true }); // en curso
     assert.deepEqual(pausaVigente([{ desde: '2026-10-01', hasta: null }], '2026-12-01'), { desde: '2026-10-01', hasta: null, activa: true });
 });
+
+test('pausasPasadas devuelve las ya terminadas, la más reciente primero, hasta el máximo', async () => {
+    const { pausasPasadas } = await import('../src/utils/pausas.js');
+    const pausas = [
+        { desde: '2026-09-01', hasta: '2026-09-05' },
+        { desde: '2026-10-01', hasta: '2026-10-03' },
+        { desde: '2026-08-01', hasta: '2026-08-02' },
+        { desde: '2026-10-10', hasta: null }, // abierta: no es pasada
+        { desde: '2026-10-20', hasta: '2026-10-25' }, // aún no termina
+        { desde: '2026-07-01', hasta: '2026-07-02' }
+    ];
+    assert.deepEqual(pausasPasadas(pausas, '2026-10-15'), [
+        { desde: '2026-10-01', hasta: '2026-10-03' },
+        { desde: '2026-09-01', hasta: '2026-09-05' },
+        { desde: '2026-08-01', hasta: '2026-08-02' }
+    ]);
+    assert.equal(pausasPasadas(pausas, '2026-10-15', 1).length, 1);
+    assert.deepEqual(pausasPasadas([], '2026-10-15'), []);
+});
+
+test('una pausa que termina hoy todavía no es pasada', async () => {
+    const { pausasPasadas } = await import('../src/utils/pausas.js');
+    assert.deepEqual(pausasPasadas([{ desde: '2026-10-10', hasta: '2026-10-15' }], '2026-10-15'), []);
+    assert.equal(pausasPasadas([{ desde: '2026-10-10', hasta: '2026-10-15' }], '2026-10-16').length, 1);
+});
