@@ -49,7 +49,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { sesion } from '../servicios/sesion.js';
 import api from '../servicios/api.js';
 import Login from '../vistas/Login.vue';
@@ -62,6 +62,7 @@ import Perfil from '../vistas/Perfil.vue';
 import Admin from '../vistas/Admin.vue';
 import AvisosFlotantes from '../componentes/AvisosFlotantes.vue';
 import { revisarLogros } from '../servicios/logros.js';
+import { iniciarRecordatorios } from '../servicios/recordatorios.js';
 
 const vistas = [
     {
@@ -107,6 +108,13 @@ const esAdmin = computed(() => Boolean(sesion.usuario && sesion.usuario.esAdmin)
 const menu = computed(() => (esAdmin.value ? [...vistas, vistaAdmin] : vistas));
 
 const vistaActiva = ref('hoy');
+
+// Recordatorio diario (si la persona lo activó en Mi perfil)
+let temporizador = null;
+onMounted(() => {
+    temporizador = iniciarRecordatorios();
+});
+onUnmounted(() => clearInterval(temporizador));
 
 // Al entrar y al cambiar de vista se revisa si se ganó algún logro (por ejemplo, tras marcar hábitos)
 watch([() => sesion.token, vistaActiva], ([token]) => {

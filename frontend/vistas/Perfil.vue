@@ -83,6 +83,27 @@
             </article>
 
             <article class="fila-card">
+                <h2>Recordatorio diario</h2>
+                <p v-if="!soporta" class="ayuda-tema">Este navegador no admite notificaciones.</p>
+                <template v-else>
+                    <p class="ayuda-tema">
+                        Una notificación a la hora que elijas si te quedan hábitos sin marcar. Solo funciona mientras la página esté abierta en una pestaña.
+                    </p>
+                    <div class="form-perfil">
+                        <label class="campo">
+                            Hora del aviso
+                            <input type="time" :value="ajustesRecordatorio.hora" @change="guardarAjustes({ hora: $event.target.value })">
+                        </label>
+                        <p v-if="mensajeRecordatorio" class="error-form">{{ mensajeRecordatorio }}</p>
+                        <button type="button" class="boton" @click="alternarRecordatorio">
+                            {{ ajustesRecordatorio.activo ? 'Desactivar recordatorio' : 'Activar recordatorio' }}
+                        </button>
+                        <button v-if="ajustesRecordatorio.activo" type="button" class="boton secundario" @click="probar">Probar ahora</button>
+                    </div>
+                </template>
+            </article>
+
+            <article class="fila-card">
                 <h2>Mis datos</h2>
                 <p class="ayuda-tema">
                     Descarga un respaldo con todos tus hábitos, pausas, registros y notas. Es un archivo JSON, sin claves.
@@ -135,6 +156,7 @@ import { sesion } from '../servicios/sesion.js';
 import { tema, cambiarTema, OPCIONES_TEMA } from '../servicios/tema.js';
 import { hoy } from '../servicios/fechas.js';
 import CampoClave from '../componentes/CampoClave.vue';
+import { ajustes as ajustesRecordatorio, guardarAjustes, pedirPermiso, probar, soportaNotificaciones } from '../servicios/recordatorios.js';
 import { MAX_BYTES, textoImportacion, leerRespaldo } from '../servicios/respaldo.js';
 
 const inicial = computed(() => (sesion.usuario ? sesion.usuario.nombre.charAt(0).toUpperCase() : '?'));
@@ -197,6 +219,22 @@ async function generarCodigo() {
     } finally {
         guardando.value = '';
     }
+}
+
+// Recordatorio diario
+const soporta = soportaNotificaciones();
+const mensajeRecordatorio = ref('');
+
+async function alternarRecordatorio() {
+    mensajeRecordatorio.value = '';
+    if (ajustesRecordatorio.activo) return guardarAjustes({ activo: false });
+
+    const permiso = await pedirPermiso();
+    if (permiso !== 'granted') {
+        mensajeRecordatorio.value = 'El navegador no dio permiso. Permite las notificaciones de este sitio en su configuración (el candado junto a la dirección) y vuelve a intentarlo.';
+        return;
+    }
+    guardarAjustes({ activo: true, ultimoAviso: '' });
 }
 
 // Descargar respaldo
