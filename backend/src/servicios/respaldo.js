@@ -40,6 +40,7 @@ export async function construirRespaldo(usuarioId) {
             color: h.color,
             dias: JSON.parse(h.dias),
             peso: h.peso,
+            metaSemanal: h.meta_semanal || null,
             creadoEn: h.creado_en,
             archivado: h.archivado === 1,
             archivadoEn: h.archivado_en || null,

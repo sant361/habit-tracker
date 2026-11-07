@@ -16,15 +16,26 @@ const aSalida = (h, pausa = null, pasadas = []) => ({
     color: h.color,
     dias: JSON.parse(h.dias),
     peso: h.peso,
+    metaSemanal: h.meta_semanal || null, // veces por semana; null = días fijos
     creadoEn: h.creado_en,
     pausa, // { desde, hasta, activa } o null
     pausasPasadas: pasadas // las últimas pausas ya terminadas [{ desde, hasta }], para poder quitarlas
 });
 
+// Con meta semanal el hábito se puede cumplir cualquier día: se guardan los 7 días y la meta
+function diasYMeta(body) {
+    const meta = body.metaSemanal == null ? null : body.metaSemanal;
+    return { dias: meta ? [0, 1, 2, 3, 4, 5, 6] : body.dias, meta };
+}
+
 function validar(body) {
-    const { nombre, dias, peso } = body || {};
+    const { nombre, dias, peso, metaSemanal } = body || {};
     if (!nombre || !nombre.trim()) return 'El nombre es obligatorio';
-    if (!Array.isArray(dias) || !dias.length || dias.some((d) => !Number.isInteger(d) || d < 0 || d > 6)) {
+    if (metaSemanal !== undefined && metaSemanal !== null && (!Number.isInteger(metaSemanal) || metaSemanal < 1 || metaSemanal > 7)) {
+        return 'La meta semanal debe ser de 1 a 7 veces por semana';
+    }
+    // Con meta semanal no hacen falta días fijos
+    if (metaSemanal == null && (!Array.isArray(dias) || !dias.length || dias.some((d) => !Number.isInteger(d) || d < 0 || d > 6))) {
         return 'Elige al menos un día de la semana (0-6)';
     }
     if (!Number.isInteger(peso) || peso < 1 || peso > 5) return 'El peso debe estar entre 1 y 5';
@@ -48,12 +59,13 @@ router.post('/', asincrono(async (req, res) => {
     const error = validar(req.body);
     if (error) return res.status(400).json({ error });
 
-    const { nombre, categoria, color, dias, peso, creadoEn } = req.body;
+    const { nombre, categoria, color, peso, creadoEn } = req.body;
+    const { dias, meta } = diasYMeta(req.body);
     // Un hábito nuevo va al final de la lista
     const { ultimo } = await db.uno('SELECT COALESCE(MAX(orden), 0) AS ultimo FROM habitos WHERE usuario_id = ?', [req.usuarioId]);
     const id = await db.insertar(
-        `INSERT INTO habitos (usuario_id, nombre, categoria, color, dias, peso, creado_en, orden)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO habitos (usuario_id, nombre, categoria, color, dias, peso, creado_en, orden, meta_semanal)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
             req.usuarioId,
             nombre.trim(),
@@ -62,7 +74,8 @@ router.post('/', asincrono(async (req, res) => {
             JSON.stringify(dias),
             peso,
             esFecha(creadoEn || '') ? creadoEn : hoyLocal(),
-            Number(ultimo) + 1
+            Number(ultimo) + 1,
+            meta
         ]
     );
     const creado = await db.uno('SELECT * FROM habitos WHERE id = ?', [id]);
@@ -93,12 +106,13 @@ router.put('/:id', asincrono(async (req, res) => {
     const error = validar(req.body);
     if (error) return res.status(400).json({ error });
 
-    const { nombre, categoria, color, dias, peso } = req.body;
+    const { nombre, categoria, color, peso } = req.body;
+    const { dias, meta } = diasYMeta(req.body);
     const id = leerId(req.params.id);
     const info = id === null ? { cambios: 0 } : await db.ejecutar(
-        `UPDATE habitos SET nombre = ?, categoria = ?, color = ?, dias = ?, peso = ?
+        `UPDATE habitos SET nombre = ?, categoria = ?, color = ?, dias = ?, peso = ?, meta_semanal = ?
          WHERE id = ? AND usuario_id = ? AND archivado = 0`,
-        [nombre.trim(), categoria || null, color || '#38bdf8', JSON.stringify(dias), peso, id, req.usuarioId]
+        [nombre.trim(), categoria || null, color || '#38bdf8', JSON.stringify(dias), peso, meta, id, req.usuarioId]
     );
     if (!info.cambios) return res.status(404).json({ error: 'Hábito no encontrado' });
 

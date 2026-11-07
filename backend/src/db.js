@@ -43,7 +43,8 @@ async function abrirPostgres() {
             archivado   INTEGER NOT NULL DEFAULT 0,
             creado_en   TEXT NOT NULL,
             orden       INTEGER NOT NULL DEFAULT 0,
-            archivado_en TEXT
+            archivado_en TEXT,
+            meta_semanal INTEGER
         );
 
         ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS codigo_hash TEXT;
@@ -51,6 +52,8 @@ async function abrirPostgres() {
         ALTER TABLE habitos ADD COLUMN IF NOT EXISTS orden INTEGER NOT NULL DEFAULT 0;
 
         ALTER TABLE habitos ADD COLUMN IF NOT EXISTS archivado_en TEXT;
+
+        ALTER TABLE habitos ADD COLUMN IF NOT EXISTS meta_semanal INTEGER;
 
         CREATE TABLE IF NOT EXISTS registros (
             id          SERIAL PRIMARY KEY,
@@ -104,7 +107,8 @@ async function abrirSqlite() {
             archivado   INTEGER NOT NULL DEFAULT 0,
             creado_en   TEXT NOT NULL,
             orden       INTEGER NOT NULL DEFAULT 0,
-            archivado_en TEXT
+            archivado_en TEXT,
+            meta_semanal INTEGER
         );
 
         CREATE TABLE IF NOT EXISTS registros (
@@ -137,6 +141,9 @@ async function abrirSqlite() {
 
     // Bases de datos creadas antes de poder restaurar hábitos archivados
     if (!columnasHabitos.some((c) => c.name === 'archivado_en')) sqlite.exec('ALTER TABLE habitos ADD COLUMN archivado_en TEXT');
+
+    // Bases de datos creadas antes de existir las metas semanales (null = días fijos)
+    if (!columnasHabitos.some((c) => c.name === 'meta_semanal')) sqlite.exec('ALTER TABLE habitos ADD COLUMN meta_semanal INTEGER');
 
     return {
         motor: 'sqlite',

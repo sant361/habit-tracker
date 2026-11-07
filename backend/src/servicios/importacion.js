@@ -28,6 +28,7 @@ export function validarRespaldo(datos) {
         const nombre = h.nombre.trim();
         const en = `"${nombre}"`;
 
+        if (h.metaSemanal != null && (!Number.isInteger(h.metaSemanal) || h.metaSemanal < 1 || h.metaSemanal > 7)) return { error: `${en}: la meta semanal no es válida` };
         if (!Array.isArray(h.dias) || !h.dias.length || h.dias.some((d) => !Number.isInteger(d) || d < 0 || d > 6)) return { error: `${en}: los días no son válidos` };
         if (!Number.isInteger(h.peso) || h.peso < 1 || h.peso > 5) return { error: `${en}: el impacto debe estar entre 1 y 5` };
         if (!fecha(h.creadoEn)) return { error: `${en}: la fecha de creación no es válida` };
@@ -60,6 +61,7 @@ export function validarRespaldo(datos) {
             color: texto(h.color) && /^#[0-9a-fA-F]{6}$/.test(h.color) ? h.color : '#38bdf8',
             dias: h.dias,
             peso: h.peso,
+            metaSemanal: h.metaSemanal || null,
             creadoEn: h.creadoEn,
             archivado,
             archivadoEn: archivado && h.archivadoEn ? h.archivadoEn : null,
@@ -95,9 +97,9 @@ export async function importarRespaldo(usuarioId, datos) {
         nombres.add(h.nombre.toLowerCase());
 
         const id = await db.insertar(
-            `INSERT INTO habitos (usuario_id, nombre, categoria, color, dias, peso, creado_en, archivado, archivado_en, orden)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [usuarioId, h.nombre, h.categoria, h.color, JSON.stringify(h.dias), h.peso, h.creadoEn, h.archivado ? 1 : 0, h.archivadoEn, h.archivado ? 0 : ++orden]
+            `INSERT INTO habitos (usuario_id, nombre, categoria, color, dias, peso, creado_en, archivado, archivado_en, orden, meta_semanal)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [usuarioId, h.nombre, h.categoria, h.color, JSON.stringify(h.dias), h.peso, h.creadoEn, h.archivado ? 1 : 0, h.archivadoEn, h.archivado ? 0 : ++orden, h.metaSemanal]
         );
         for (const p of h.pausas) await db.insertar('INSERT INTO pausas (habito_id, desde, hasta) VALUES (?, ?, ?)', [id, p.desde, p.hasta]);
         for (const r of h.registros) await db.insertar('INSERT INTO registros (habito_id, fecha, nota) VALUES (?, ?, ?)', [id, r.fecha, r.nota]);
