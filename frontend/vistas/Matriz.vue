@@ -55,6 +55,7 @@
                 <span><i class="celda celda-pendiente"></i> Hoy pendiente</span>
                 <span><i class="celda celda-pausado"></i> En pausa</span>
                 <span><i class="celda celda-no-toca"></i> No tocaba</span>
+                <span><i class="celda celda-libre"></i> Libre (meta semanal)</span>
             </div>
         </template>
 

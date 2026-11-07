@@ -37,7 +37,7 @@
                     </td>
                     <td class="col-dato">
                         <b>{{ fila.rachaActual }}</b>
-                        <small>mejor {{ fila.mejorRacha }}</small>
+                        <small>mejor {{ fila.mejorRacha }}{{ fila.unidadRacha === 'semanas' ? ' sem.' : '' }}</small>
                     </td>
                 </tr>
             </tbody>
@@ -75,6 +75,7 @@ const textoEstado = {
     hecho: 'Hecho',
     fallado: 'Fallado',
     pendiente: 'Pendiente',
+    libre: 'Libre (meta semanal)',
     pausado: 'En pausa',
     'no-toca': 'No tocaba',
     futuro: 'Futuro'

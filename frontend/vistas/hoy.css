@@ -314,3 +314,8 @@
     background: var(--fallo);
     border-radius: 12px;
 }
+
+.hoy-semanal {
+    color: var(--acento);
+    font-weight: 600;
+}

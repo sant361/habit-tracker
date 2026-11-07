@@ -27,6 +27,22 @@
         </div>
 
         <div class="campo">
+            Frecuencia
+            <div class="modo-frecuencia">
+                <button type="button" :class="['dia-boton', { activo: modo === 'dias' }]" @click="modo = 'dias'">Días fijos</button>
+                <button type="button" :class="['dia-boton', { activo: modo === 'semanal' }]" @click="modo = 'semanal'">Meta semanal</button>
+            </div>
+        </div>
+
+        <label v-if="modo === 'semanal'" class="campo">
+            Veces por semana
+            <select v-model.number="datos.metaSemanal">
+                <option v-for="n in 7" :key="n" :value="n">{{ n }}</option>
+            </select>
+            <small>Lo cumples el día que quieras; cuenta la semana completa, de lunes a domingo.</small>
+        </label>
+
+        <div v-else class="campo">
             Días que toca
             <div class="dias-semana">
                 <button
@@ -53,6 +69,7 @@
 import { reactive, ref, computed } from 'vue';
 import { NOMBRES_DIAS } from '../servicios/fechas.js';
 import { sugerirCategorias } from '../servicios/busqueda.js';
+import { datosDeMeta } from '../servicios/semanal.js';
 
 
 const props = defineProps({
@@ -68,8 +85,10 @@ const datos = reactive({
     categoria: props.habito ? props.habito.categoria || '' : '',
     color: props.habito ? props.habito.color : '#38bdf8',
     peso: props.habito ? props.habito.peso : 3,
-    dias: props.habito ? [...props.habito.dias] : [0, 1, 2, 3, 4, 5, 6]
+    dias: props.habito ? [...props.habito.dias] : [0, 1, 2, 3, 4, 5, 6],
+    metaSemanal: props.habito && props.habito.metaSemanal ? props.habito.metaSemanal : 3
 });
+const modo = ref(props.habito && props.habito.metaSemanal ? 'semanal' : 'dias');
 
 // Las que ya existen, para repetir exactamente el mismo nombre (y no crear "Salud" y "salud")
 const sugeridas = computed(() => sugerirCategorias(props.categorias, datos.categoria));
@@ -85,11 +104,12 @@ function enviar() {
         error.value = 'El nombre es obligatorio';
         return;
     }
-    if (!datos.dias.length) {
+    if (modo.value === 'dias' && !datos.dias.length) {
         error.value = 'Elige al menos un día';
         return;
     }
     error.value = '';
-    emit('guardar', { ...datos, dias: [...datos.dias].sort() });
+    const { metaSemanal, ...resto } = datos;
+    emit('guardar', { ...resto, dias: [...datos.dias].sort(), ...datosDeMeta(modo.value, metaSemanal) });
 }
 </script>

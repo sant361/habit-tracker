@@ -24,11 +24,11 @@
                 </div>
                 <div>
                     <b>{{ fila.rachaActual }}</b>
-                    <small>racha actual</small>
+                    <small>{{ fila.unidadRacha === 'semanas' ? 'semanas de racha' : 'racha actual' }}</small>
                 </div>
                 <div>
                     <b>{{ fila.mejorRacha }}</b>
-                    <small>mejor racha</small>
+                    <small>{{ fila.unidadRacha === 'semanas' ? 'mejor (semanas)' : 'mejor racha' }}</small>
                 </div>
                 <div v-if="resumen.pausados">
                     <b>{{ resumen.pausados }}</b>

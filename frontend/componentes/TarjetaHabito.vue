@@ -9,7 +9,8 @@
         </div>
         <p class="categoria">{{ habito.categoria || 'Sin categoría' }}</p>
 
-        <div class="chips-dias">
+        <p v-if="habito.metaSemanal" class="meta-semanal-texto">{{ textoMeta(habito.metaSemanal) }}</p>
+        <div v-else class="chips-dias">
             <span
                 v-for="(nombre, i) in NOMBRES_DIAS"
                 :key="i"
@@ -64,6 +65,7 @@
 <script setup>
 import { ref } from 'vue';
 import { NOMBRES_DIAS, hoy } from '../servicios/fechas.js';
+import { textoMeta } from '../servicios/semanal.js';
 import { textoPausa, textoPausaPasada, errorDePausa } from '../servicios/pausas.js';
 
 const props = defineProps({

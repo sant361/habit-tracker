@@ -14,8 +14,8 @@ test('solo cuenta lo pendiente de hoy con una racha de al menos 3 días', () => 
         fila(6, 'No toca', 9, 'no-toca')
     ];
     assert.deepEqual(rachasEnRiesgo(filas), [
-        { habitoId: 1, nombre: 'Leer', racha: 12 },
-        { habitoId: 4, nombre: 'Estudiar', racha: 3 }
+        { habitoId: 1, nombre: 'Leer', racha: 12, unidad: 'días' },
+        { habitoId: 4, nombre: 'Estudiar', racha: 3, unidad: 'días' }
     ]);
 });
 
@@ -31,4 +31,11 @@ test('textoRiesgo cambia según cuántas rachas hay', () => {
     assert.equal(textoRiesgo(dos), 'Tienes 2 rachas en juego hoy: "Leer" (12 días), "Correr" (3 días).');
     const cinco = ['a', 'b', 'c', 'd', 'e'].map((nombre) => ({ nombre, racha: 4 }));
     assert.match(textoRiesgo(cinco), /5 rachas.*"c" \(4 días\) y 2 más\.$/);
+});
+
+test('la racha de un hábito semanal se cuenta en semanas', () => {
+    const f = { ...fila(1, 'Correr', 4, 'pendiente'), unidadRacha: 'semanas' };
+    const lista = rachasEnRiesgo([f]);
+    assert.equal(lista[0].unidad, 'semanas');
+    assert.equal(textoRiesgo(lista), 'Tu racha de 4 semanas en "Correr" está en juego hoy. ¡No la pierdas!');
 });

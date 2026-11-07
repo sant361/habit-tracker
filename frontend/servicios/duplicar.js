@@ -22,6 +22,7 @@ export function datosDeCopia(habito, existentes, hoyISO) {
         color: habito.color,
         peso: habito.peso,
         dias: [...habito.dias],
+        metaSemanal: habito.metaSemanal || null,
         creadoEn: hoyISO // la copia empieza hoy: no hereda días pasados que no vivió
     };
 }

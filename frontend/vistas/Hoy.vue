@@ -67,11 +67,12 @@
                             <span class="hoy-nombre">
                                 <strong>{{ fila.nombre }}</strong>
                                 <small>{{ fila.categoria || 'Sin categoría' }}</small>
+                                <small v-if="fila.metaSemanal" class="hoy-semanal">{{ textoProgresoSemana(fila) }}</small>
                                 <small v-if="notaDe(fila)" class="hoy-nota-texto">{{ notaDe(fila) }}</small>
                             </span>
                             <span class="hoy-racha">
                                 <b>{{ fila.rachaActual }}</b>
-                                <small>{{ fila.rachaActual === 1 ? 'día' : 'días' }} de racha</small>
+                                <small>{{ unidadDeRacha(fila.rachaActual, fila.unidadRacha) }} de racha</small>
                             </span>
                         </button>
                         <button
@@ -103,6 +104,7 @@
                     <li v-for="fila in resto" :key="fila.habitoId">
                         <i class="punto" :style="{ background: fila.color }"></i>
                         {{ fila.nombre }}
+                        <small v-if="fila.metaSemanal" class="hoy-semanal">· {{ textoProgresoSemana(fila) }}</small>
                     </li>
                 </ul>
             </details>
@@ -126,6 +128,7 @@ import api, { mensajeError } from '../servicios/api.js';
 import { sesion } from '../servicios/sesion.js';
 import { hoy, sumarDias } from '../servicios/fechas.js';
 import { rachasEnRiesgo, textoRiesgo } from '../servicios/rachas.js';
+import { semanalEnLista, textoProgresoSemana, unidadDeRacha } from '../servicios/semanal.js';
 import { fechaLarga as fechaDelDia, nombreDia, mover, tiraSemana, MAX_DIAS_ATRAS } from '../servicios/dia.js';
 
 const datos = ref(null);
@@ -161,7 +164,13 @@ const estaPausado = (fila) => fila.celdas[0].estado === 'pausado';
 
 // Los que tocan hoy y no están en pausa, más cualquiera que ya se marcó aunque no tocara
 const programados = computed(() =>
-    datos.value ? datos.value.filas.filter((f) => (f.celdas[0].programado && !estaPausado(f)) || estaHecho(f)) : []
+    datos.value
+        ? datos.value.filas.filter((f) =>
+              f.metaSemanal
+                  ? semanalEnLista(f, esHoy.value)
+                  : (f.celdas[0].programado && !estaPausado(f)) || estaHecho(f)
+          )
+        : []
 );
 
 const pausados = computed(() => (datos.value ? datos.value.filas.filter(estaPausado) : []));

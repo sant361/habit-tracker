@@ -234,6 +234,11 @@
     border: 1px solid var(--borde);
 }
 
+.celda-libre {
+    background: transparent;
+    border: 1px dotted var(--texto-suave);
+}
+
 .celda-futuro {
     background: transparent;
     border: 1px solid var(--borde);
