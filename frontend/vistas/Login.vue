@@ -19,7 +19,43 @@
         </div>
 
         <div class="login-panel">
-            <form v-if="!recuperando" class="caja-login" @submit.prevent="enviar">
+            <form v-if="restableciendo" class="caja-login" @submit.prevent="restablecer">
+                <h2>Elige tu clave nueva</h2>
+                <label class="campo">
+                    Clave nueva
+                    <CampoClave v-model="claveNueva" :minlength="6" :maxlength="72" autocomplete="new-password" required />
+                </label>
+                <label class="campo">
+                    Repite la clave
+                    <CampoClave v-model="claveRepetida" :minlength="6" :maxlength="72" autocomplete="new-password" required />
+                </label>
+
+                <p v-if="error" class="error-form">{{ error }}</p>
+
+                <button type="submit" class="boton" :disabled="cargando">Cambiar clave</button>
+                <button type="button" class="boton secundario" @click="salirDeRestablecer">Volver</button>
+            </form>
+
+            <form v-else-if="olvidando" class="caja-login" @submit.prevent="pedirEnlace">
+                <h2>Recuperar tu clave</h2>
+                <p class="ayuda-recuperar">
+                    Escribe tu correo y te enviamos un enlace para elegir una clave nueva. El enlace vence en 30 minutos.
+                </p>
+
+                <label class="campo">
+                    Email
+                    <input v-model="email" type="email" required>
+                </label>
+
+                <p v-if="enlaceEnviado" class="ok-form">Si ese correo está registrado, te enviamos el enlace. Revisa también la carpeta de spam.</p>
+                <p v-if="error" class="error-form">{{ error }}</p>
+
+                <button type="submit" class="boton" :disabled="cargando">{{ enlaceEnviado ? 'Enviar otra vez' : 'Enviar enlace' }}</button>
+                <button type="button" class="boton secundario" @click="cerrarOlvido">Volver</button>
+                <button type="button" class="enlace-recuperar" @click="usarCodigo">Tengo un código de recuperación</button>
+            </form>
+
+            <form v-else-if="!recuperando" class="caja-login" @submit.prevent="enviar">
                 <h2>{{ modoRegistro ? 'Crea tu cuenta' : 'Bienvenido de nuevo' }}</h2>
 
                 <label v-if="modoRegistro" class="campo">
@@ -72,16 +108,18 @@
 
                 <button type="submit" class="boton" :disabled="cargando">Cambiar clave</button>
                 <button type="button" class="boton secundario" @click="cerrarRecuperar">Volver</button>
+                <button v-if="correoActivo" type="button" class="enlace-recuperar" @click="usarCorreo">Prefiero recibir un enlace por correo</button>
             </form>
         </div>
     </section>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import api, { mensajeError } from '../servicios/api.js';
 import { sesion } from '../servicios/sesion.js';
 import CampoClave from '../componentes/CampoClave.vue';
+import { tokenDeUrl, traeEnlace, direccionSinToken, errorDeClave } from '../servicios/restablecer.js';
 
 const modoRegistro = ref(false);
 const nombre = ref('');
@@ -96,6 +134,89 @@ const codigo = ref('');
 const claveNueva = ref('');
 const aviso = ref('');
 
+// Recuperar la clave por correo: pedir el enlace y, al abrirlo, elegir la clave nueva
+const correoActivo = ref(false); // el servidor tiene Gmail configurado
+const olvidando = ref(false);
+const enlaceEnviado = ref(false);
+const token = ref(tokenDeUrl(window.location.search));
+const restableciendo = ref(Boolean(token.value));
+const claveRepetida = ref('');
+
+// Quita el token de la dirección para que no quede a la vista ni en el historial
+function limpiarDireccion() {
+    const { pathname, search, hash } = window.location;
+    window.history.replaceState(null, '', direccionSinToken(pathname, search, hash));
+}
+
+onMounted(async () => {
+    if (traeEnlace(window.location.search)) {
+        if (!token.value) aviso.value = 'El enlace no es válido. Pide uno nuevo desde "¿Olvidaste tu clave?".';
+        limpiarDireccion();
+    }
+    try {
+        const { data } = await api.get('/auth/correo-activo');
+        correoActivo.value = Boolean(data.activo);
+    } catch {
+        correoActivo.value = false; // sin servidor no hay nada que ofrecer: queda el código de recuperación
+    }
+});
+
+function cerrarOlvido() {
+    error.value = '';
+    enlaceEnviado.value = false;
+    olvidando.value = false;
+}
+
+function usarCodigo() {
+    cerrarOlvido();
+    recuperando.value = true;
+}
+
+function usarCorreo() {
+    cerrarRecuperar();
+    olvidando.value = true;
+}
+
+async function pedirEnlace() {
+    error.value = '';
+    cargando.value = true;
+    try {
+        await api.post('/auth/olvide', { email: email.value });
+        enlaceEnviado.value = true;
+    } catch (err) {
+        error.value = mensajeError(err, 'No se pudo conectar con el servidor');
+    } finally {
+        cargando.value = false;
+    }
+}
+
+async function restablecer() {
+    const problema = errorDeClave(claveNueva.value, claveRepetida.value);
+    if (problema) {
+        error.value = problema;
+        return;
+    }
+    error.value = '';
+    cargando.value = true;
+    try {
+        await api.post('/auth/restablecer', { token: token.value, claveNueva: claveNueva.value });
+        salirDeRestablecer();
+        aviso.value = 'Clave cambiada. Ya puedes entrar con la nueva.';
+    } catch (err) {
+        error.value = mensajeError(err, 'No se pudo conectar con el servidor');
+    } finally {
+        cargando.value = false;
+    }
+}
+
+function salirDeRestablecer() {
+    token.value = '';
+    claveNueva.value = '';
+    claveRepetida.value = '';
+    error.value = '';
+    restableciendo.value = false;
+}
+
 // Cuadrícula decorativa (7 columnas x 5 filas) con niveles 0-3
 const decoracion = Array.from({ length: 35 }, (_, i) => (i * 7 + (i >> 2) * 3) % 4);
 
@@ -109,7 +230,8 @@ function cambiarModo() {
 function abrirRecuperar() {
     error.value = '';
     aviso.value = '';
-    recuperando.value = true;
+    if (correoActivo.value) olvidando.value = true;
+    else recuperando.value = true;
 }
 
 function cerrarRecuperar() {
