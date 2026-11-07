@@ -55,6 +55,23 @@ El panel nunca muestra los hábitos ni las notas de nadie, y no puede borrar ni 
 Sin `ADMIN_EMAIL` no existen administradores. No pongas un correo que nadie haya registrado todavía: cualquiera podría
 registrarlo y quedar como admin.
 
+## Recuperar la clave por correo (Gmail)
+
+Si configuras un correo de Gmail, en el inicio de sesión aparece la opción de recibir un enlace para cambiar la clave.
+El enlace sirve una sola vez y vence a los 30 minutos. Sin esta configuración la página sigue funcionando y solo
+ofrece el código de recuperación del perfil.
+
+1. En la cuenta de Google que enviará los correos activa la verificación en dos pasos y crea una **contraseña de aplicación**
+   (myaccount.google.com/apppasswords). La clave normal de Gmail no sirve.
+2. Define estas variables (en Render, en *Environment*; en local, en `backend/.env`):
+   - `GMAIL_USER`: el correo de Gmail que envía.
+   - `GMAIL_APP_PASSWORD`: la contraseña de aplicación (con o sin espacios).
+   - `APP_URL` (opcional): la dirección de la página, por ejemplo `https://habit-tracker-97sl.onrender.com`. Si falta, se toma de la petición.
+3. Opcional, para otro proveedor SMTP: `SMTP_HOST`, `SMTP_PORT` y `SMTP_SEGURO` (`false` si el puerto no usa TLS directo).
+
+Límites: 3 correos por cuenta cada 15 minutos y 30 en total por hora. La respuesta es la misma exista o no el correo,
+para que nadie pueda averiguar quién está registrado.
+
 ## Pausar un hábito
 
 En *Mis hábitos*, el botón **Pausar** (con fecha final opcional) deja el hábito en pausa: durante esos días

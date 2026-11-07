@@ -29,7 +29,9 @@ async function abrirPostgres() {
             nombre      TEXT NOT NULL,
             email       TEXT NOT NULL UNIQUE,
             clave_hash  TEXT NOT NULL,
-            codigo_hash TEXT
+            codigo_hash TEXT,
+            reset_hash  TEXT,
+            reset_expira TEXT
         );
 
         CREATE TABLE IF NOT EXISTS habitos (
@@ -48,6 +50,10 @@ async function abrirPostgres() {
         );
 
         ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS codigo_hash TEXT;
+
+        ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS reset_hash TEXT;
+
+        ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS reset_expira TEXT;
 
         ALTER TABLE habitos ADD COLUMN IF NOT EXISTS orden INTEGER NOT NULL DEFAULT 0;
 
@@ -93,7 +99,9 @@ async function abrirSqlite() {
             nombre      TEXT NOT NULL,
             email       TEXT NOT NULL UNIQUE,
             clave_hash  TEXT NOT NULL,
-            codigo_hash TEXT
+            codigo_hash TEXT,
+            reset_hash  TEXT,
+            reset_expira TEXT
         );
 
         CREATE TABLE IF NOT EXISTS habitos (
@@ -134,6 +142,9 @@ async function abrirSqlite() {
     // Bases de datos creadas antes del código de recuperación
     const columnasUsuarios = sqlite.prepare('PRAGMA table_info(usuarios)').all();
     if (!columnasUsuarios.some((c) => c.name === 'codigo_hash')) sqlite.exec('ALTER TABLE usuarios ADD COLUMN codigo_hash TEXT');
+    // Bases de datos creadas antes de restablecer la clave por correo
+    if (!columnasUsuarios.some((c) => c.name === 'reset_hash')) sqlite.exec('ALTER TABLE usuarios ADD COLUMN reset_hash TEXT');
+    if (!columnasUsuarios.some((c) => c.name === 'reset_expira')) sqlite.exec('ALTER TABLE usuarios ADD COLUMN reset_expira TEXT');
 
     // Bases de datos creadas antes de poder ordenar los hábitos
     const columnasHabitos = sqlite.prepare('PRAGMA table_info(habitos)').all();

@@ -19,3 +19,10 @@ services:
       # Tu correo de administrador (debe ser una cuenta ya registrada por ti)
       - key: ADMIN_EMAIL
         sync: false
+      # Para recuperar la clave por correo (opcional, ver README)
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: APP_URL
+        sync: false

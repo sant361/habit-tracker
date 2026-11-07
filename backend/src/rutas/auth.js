@@ -10,6 +10,8 @@ import { validarRegistro, validarLogin, limpiarEmail, MAX_NOMBRE, MIN_CLAVE, MAX
 import { esCorreoAdmin } from '../utils/admin.js';
 import { construirRespaldo } from '../servicios/respaldo.js';
 import { importarRespaldo } from '../servicios/importacion.js';
+import { correoConfigurado, enviarCorreo } from '../servicios/correo.js';
+import { crearToken, huella, tokenValido, vigente, urlBase, enlaceDe, mensajeRestablecer } from '../servicios/enlaceClave.js';
 
 const router = Router();
 
@@ -61,6 +63,55 @@ router.get('/yo', requerirAuth, asincrono(async (req, res) => {
 // Máximo de intentos de recuperación por correo cada 15 minutos (frena adivinar códigos)
 const limiteRecuperar = crearLimitador({ max: 5, ventanaMs: 15 * 60 * 1000 });
 
+// Máximo de correos de recuperación: 3 por cuenta cada 15 minutos y 30 en total por hora (cuida la cuota de Gmail)
+const limiteCorreoCuenta = crearLimitador({ max: 3, ventanaMs: 15 * 60 * 1000 });
+const limiteCorreoTotal = crearLimitador({ max: 30, ventanaMs: 60 * 60 * 1000 });
+
+// Le dice a la pantalla si se puede ofrecer "recuperar por correo"
+router.get('/correo-activo', (req, res) => {
+    res.json({ activo: correoConfigurado() });
+});
+
+// Envía un enlace para restablecer la clave. Responde igual exista o no el correo,
+// así nadie puede averiguar qué correos están registrados.
+router.post('/olvide', asincrono(async (req, res) => {
+    const correo = limpiarEmail((req.body || {}).email);
+    if (!correo) return res.status(400).json({ error: 'Escribe tu correo' });
+    if (!correoConfigurado()) {
+        return res.status(503).json({ error: 'La recuperación por correo no está disponible. Usa tu código de recuperación.' });
+    }
+    if (!limiteCorreoCuenta.intentar(correo) || !limiteCorreoTotal.intentar('total')) {
+        return res.status(429).json({ error: 'Demasiadas solicitudes. Espera unos minutos e inténtalo de nuevo' });
+    }
+
+    const usuario = await db.uno('SELECT id, nombre, email FROM usuarios WHERE email = ?', [correo]);
+    if (usuario) {
+        const { token, hash, expira } = crearToken();
+        await db.ejecutar('UPDATE usuarios SET reset_hash = ?, reset_expira = ? WHERE id = ?', [hash, expira, usuario.id]);
+        const enlace = enlaceDe(urlBase(process.env, req.headers), token);
+        const { asunto, texto } = mensajeRestablecer({ nombre: usuario.nombre, enlace });
+        // Sin esperar: la respuesta tarda lo mismo exista o no la cuenta. Si falla, queda en el registro del servidor.
+        enviarCorreo({ para: usuario.email, asunto, texto }).catch((err) => console.error('No se pudo enviar el correo de recuperación:', err.message));
+    }
+    res.json({ ok: true });
+}));
+
+// Cambia la clave con el token que llegó por correo. Sirve una sola vez y vence a los 30 minutos.
+router.post('/restablecer', asincrono(async (req, res) => {
+    const { token, claveNueva } = req.body || {};
+    if (!tokenValido(token)) return res.status(400).json({ error: 'El enlace no es válido o ya venció' });
+    if (typeof claveNueva !== 'string' || claveNueva.length < MIN_CLAVE || claveNueva.length > MAX_CLAVE) {
+        return res.status(400).json({ error: `La clave nueva debe tener entre ${MIN_CLAVE} y ${MAX_CLAVE} caracteres` });
+    }
+    const usuario = await db.uno('SELECT id, email, reset_expira FROM usuarios WHERE reset_hash = ?', [huella(token)]);
+    if (!usuario || !vigente(usuario.reset_expira)) {
+        return res.status(400).json({ error: 'El enlace no es válido o ya venció' });
+    }
+    await db.ejecutar('UPDATE usuarios SET clave_hash = ?, reset_hash = NULL, reset_expira = NULL WHERE id = ?', [bcrypt.hashSync(claveNueva, 10), usuario.id]);
+    limiteLogin.reiniciar(usuario.email); // si estaba bloqueado por intentos fallidos, ya puede entrar
+    res.json({ ok: true });
+}));
+
 // Cambia el nombre que se muestra en la app
 router.put('/perfil', requerirAuth, asincrono(async (req, res) => {
     const nombre = typeof (req.body || {}).nombre === 'string' ? req.body.nombre.trim() : '';
@@ -88,7 +139,7 @@ router.put('/clave', requerirAuth, asincrono(async (req, res) => {
     if (claveActual === claveNueva) {
         return res.status(400).json({ error: 'La clave nueva debe ser distinta a la actual' });
     }
-    await db.ejecutar('UPDATE usuarios SET clave_hash = ? WHERE id = ?', [bcrypt.hashSync(claveNueva, 10), req.usuarioId]);
+    await db.ejecutar('UPDATE usuarios SET clave_hash = ?, reset_hash = NULL, reset_expira = NULL WHERE id = ?', [bcrypt.hashSync(claveNueva, 10), req.usuarioId]);
     res.json({ ok: true });
 }));
 
@@ -152,7 +203,7 @@ router.post('/recuperar', asincrono(async (req, res) => {
     // El mismo mensaje para "no existe" y "código malo": no revela qué correos están registrados
     if (!valido) return res.status(403).json({ error: 'Correo o código incorrecto' });
 
-    await db.ejecutar('UPDATE usuarios SET clave_hash = ?, codigo_hash = NULL WHERE id = ?', [bcrypt.hashSync(claveNueva, 10), usuario.id]);
+    await db.ejecutar('UPDATE usuarios SET clave_hash = ?, codigo_hash = NULL, reset_hash = NULL, reset_expira = NULL WHERE id = ?', [bcrypt.hashSync(claveNueva, 10), usuario.id]);
     limiteRecuperar.reiniciar(correo);
     res.json({ ok: true });
 }));
